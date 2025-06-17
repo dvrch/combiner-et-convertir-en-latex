@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Plugin, Notice, TFile } from 'obsidian';
+    import { Plugin, Notice, TFile, WorkspaceLeaf } from 'obsidian';
     import MarkdownProcessor from './MarkdownProcessor.svelte';
 
     export let plugin: Plugin;
@@ -14,6 +14,11 @@
 
         if (activeFile.extension !== 'md') {
             new Notice('Le fichier actif n\'est pas un fichier Markdown.');
+            return;
+        }
+
+        if (!activeFile.parent) {
+            new Notice('Le fichier n\'a pas de dossier parent.');
             return;
         }
 
@@ -40,19 +45,24 @@
         const parentPath = activeFile.parent.path;
         const baseName = activeFile.basename;
         const newFileName = await processor.getUniqueFileName(baseName, parentPath);
+        const fullPath = `${parentPath}/${newFileName}`;
         
         // Sauvegarder le fichier combiné
         try {
-            await plugin.app.vault.create(`${parentPath}/${newFileName}`, processedContent);
-            new Notice(`Fichier combiné créé : ${newFileName}`);
+            await plugin.app.vault.create(fullPath, processedContent);
+            console.log(`Fichier combiné créé à : ${fullPath}`);
+            new Notice(`Fichier combiné créé : ${fullPath}`);
             
-            // Ouvrir le nouveau fichier
-            const newFile = plugin.app.vault.getAbstractFileByPath(`${parentPath}/${newFileName}`);
+            // Ouvrir le nouveau fichier dans un volet à droite
+            const newFile = plugin.app.vault.getAbstractFileByPath(fullPath);
             if (newFile instanceof TFile) {
-                await plugin.app.workspace.getLeaf().openFile(newFile);
+                const leaf = plugin.app.workspace.getLeaf('split', 'vertical');
+                await leaf.openFile(newFile);
             }
-        } catch (err) {
-            new Notice(`Erreur lors de la création du fichier combiné : ${err.message}`);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+            console.error(`Erreur lors de la création du fichier combiné : ${errorMessage}`);
+            new Notice(`Erreur lors de la création du fichier combiné : ${errorMessage}`);
         }
     }
 

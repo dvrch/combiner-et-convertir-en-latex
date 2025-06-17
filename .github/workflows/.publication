@@ -1,0 +1,104 @@
+Je vais vous aider à préparer votre plugin pour le partage communautaire Obsidian. Je vais d'abord vérifier la structure actuelle de votre projet.
+
+Ran tool
+Je vais maintenant vérifier le contenu de votre manifest.json pour voir ce qui doit être mis à jour :
+
+Read file: manifest.json
+Je vais maintenant vérifier le README.md :
+
+Read file: README.md
+D'après l'analyse de votre projet, voici ce qu'il faut faire pour partager votre plugin avec la communauté Obsidian :
+
+1. **Mise à jour du manifest.json** :
+
+2. **Mise à jour du README.md** :
+
+3. **Structure des fichiers à inclure dans la release** :
+- `main.js` (compilé)
+- `manifest.json`
+- `styles.css`
+- `LICENSE`
+
+4. **Étapes pour publier le plugin** :
+
+1. Créez un dépôt GitHub pour votre plugin :
+   - Nom : `obsidian-syntax-highlighter`
+   - Description : "A powerful syntax highlighter for Obsidian that allows you to define custom regex-based highlighting patterns"
+   - Licence : Apache 2.0
+
+2. Préparez votre code pour la publication :
+   ```bash
+   # Compiler le TypeScript
+   pnpm run build
+   
+   # Créer une release sur GitHub
+   git add .
+   git commit -m "Prepare for release"
+   git tag v1.0.0
+   git push origin main --tags
+   ```
+
+3. Créez une release sur GitHub :
+   - Tag : `v1.0.0`
+   - Title : "Initial Release"
+   - Description : Copiez le contenu du README.md
+   - Upload les fichiers : `main.js`, `manifest.json`, `styles.css`, `LICENSE`
+
+4. Soumettez votre plugin à la communauté Obsidian :
+   - Allez sur [Obsidian Community Plugins](https://github.com/obsidianmd/obsidian-releases)
+   - Créez une Pull Request avec votre plugin
+   - Suivez le format de soumission dans leur README
+
+5. **Configuration supplémentaire recommandée** :
+
+1. Ajoutez un fichier `.github/workflows/build.yml` pour l'intégration continue :
+
+2. Ajoutez un fichier `.gitignore` approprié :
+
+Pour finaliser la préparation de votre plugin pour le partage communautaire, voici un résumé des étapes à suivre :
+
+1. **Mise à jour des fichiers de configuration** :
+   - ✅ `manifest.json` mis à jour avec les bonnes informations
+   - ✅ `README.md` mis à jour avec la documentation
+   - ✅ `.gitignore` configuré
+   - ✅ Workflow GitHub Actions ajouté
+
+2. **Prochaines étapes** :
+   1. Créez un dépôt GitHub pour votre plugin
+   2. Remplacez "Your Name" et "your-username" dans les fichiers par vos informations
+   3. Compilez le plugin : `pnpm run build`
+   4. Créez une release sur GitHub avec les fichiers :
+      - `main.js`
+      - `manifest.json`
+      - `styles.css`
+      - `LICENSE`
+   5. Soumettez votre plugin à la communauté Obsidian
+
+3. **Structure finale du dépôt** :
+```
+obsidian-syntax-highlighter/
+├── .github/
+│   └── workflows/
+│       └── build.yml
+├── src/
+│   ├── main.ts
+│   ├── SyntaxHighlighter.svelte
+│   ├── SettingsEditor.svelte
+│   └── svelte-utils.ts
+├── .gitignore
+├── LICENSE
+├── manifest.json
+├── package.json
+├── README.md
+├── styles.css
+└── tsconfig.json
+```
+
+4. **Points importants à vérifier avant la soumission** :
+   - Le plugin fonctionne correctement
+   - La documentation est claire et complète
+   - Les licences sont en ordre
+   - Le code est propre et bien commenté
+   - Les tests passent (si vous en avez)
+
+Voulez-vous que je vous aide avec l'une de ces étapes en particulier ?

@@ -1,0 +1,41 @@
+langue : francais
+# Obsidian Markdown Combiner Plugin
+
+**Objective:** Develop an Obsidian plugin that combines the content of a main Markdown file with its linked Markdown files (e.g., `![[another_note]]`). The plugin should recursively include content from nested links, resulting in a single, consolidated Markdown file.
+
+**Technology Stack:**
+*   **Framework:** Svelte (targeting version 4, as version 5 has known issues). All core functionalities should be implemented using Svelte components.
+*   **Language:** svelte 4 (+TypeScript  
+*   **Package Manager:** pnpm
+
+**Core Principles:**
+*   **Simplicity & Logic:** The code should be easy to understand and follow clear logical patterns.
+*   **Intelligence & Flexibility:** The plugin should be robust enough to handle various linking scenarios and allow for future expansions (e.g., integration with external data sources like APIs or YAML files).
+*   **Usability & Collaboration:** The plugin should be intuitive for users and designed for easy maintenance and collaborative development.
+
+**Inspiration/Reference:**
+The plugin's core functionality is inspired by the Python workflow found at `/c:\Users\dvrch\Desktop\4plug\.obsidian\plugins\Straightforward-Obsidian2Latex-DV`. While that workflow targets LaTeX output, this plugin aims to achieve similar Markdown consolidation directly within Obsidian. We seek a more robust and simpler parsing logic than the referenced Python workflow, potentially exploring structured data approaches (e.g., YAML-like syntax for configuration or linking).
+
+utiliser pnpm et non npm
+noms relatifs au contenu
+tout en composant svelte 4
+
+------------
+je vois toujour des indices de l aincien plugin @manifest.json
+je vois des commposant es type script, pourtant c est svelte 4 q on a deamnµandé, donc extraire des ts pour mettre dans des composantes svelte (ne garder que le stricţminimm si oubligé d avoir  des fichier ts)
+en plus j ai demandé a ce q on travaille qu avec des composante svelte, ne laisser dans les *.ts que les fichier et contenu absolument obligatoir 
+------------
+
+supprimer toute la configuration git de ce dossier avant de recreer (donc avec suppression de @/.git)
+tu te souvien bien que c est un plugin obsidian qu on consstruit ici ?
+
+----------
+le dossier test se trouve normalement dans  le vault  et pas danṡplugin .
+c est li icic @/test-vault | le dossier du plugin c est @/combiner et convertir en latex 
+--------------
+si le mom du combiné existe deja, ajouter un numéro devant
+--------------
+mais avant de corriger, creer u depot github et poster dessus
+sans oublier la config git convenable . par example giignore convenable pour pas charger tout et n importe quoi  en  locurence les installations NODE
+ en svelte, rapelle toi (j ne sais pas pourquoi tu me crait des *.ts)
+ et qd je demande du svelte, c est pas juste du *.ts renomé en fichier svelte , c est eviter au max *.ts a l interieur, tout faire pour qe la logique utilise le max de svelte, evitant au mieux le *.ts

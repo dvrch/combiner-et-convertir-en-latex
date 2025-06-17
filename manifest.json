@@ -1,0 +1,9 @@
+{
+  "id": "obsidian-markdown-combiner",
+  "version": "1.0.0",
+  "name": "color text perso regex",
+  "minAppVersion": "1.0.0",
+  "isDesktopOnly": false,
+  "description": "An Obsidian plugin to combine markdown files and their linked content into a single file.",
+  "author": "dvrch"
+}

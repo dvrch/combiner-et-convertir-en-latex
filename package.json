@@ -14,13 +14,13 @@
 	"keywords": [
 		"obsidian",
 		"plugin",
-		"syntax",
-		"highlighter"
+		"markdown",
+		"combiner"
 	],
 	"author": "dvrch",
 	"license": "MIT",
 	"obsidian": {
-		"name": "color text perso regex",
+		"name": "Obsidian Markdown Combiner",
 		"minAppVersion": "1.0.0",
 		"isDesktopOnly": false
 	},

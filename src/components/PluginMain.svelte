@@ -32,6 +32,28 @@
         } else {
             processor.$set({ content });
         }
+
+        // Attendre que le contenu soit traité
+        const processedContent = await processor.processMarkdown(content);
+        
+        // Créer le nom du fichier combiné
+        const parentPath = activeFile.parent.path;
+        const baseName = activeFile.basename;
+        const newFileName = await processor.getUniqueFileName(baseName, parentPath);
+        
+        // Sauvegarder le fichier combiné
+        try {
+            await plugin.app.vault.create(`${parentPath}/${newFileName}`, processedContent);
+            new Notice(`Fichier combiné créé : ${newFileName}`);
+            
+            // Ouvrir le nouveau fichier
+            const newFile = plugin.app.vault.getAbstractFileByPath(`${parentPath}/${newFileName}`);
+            if (newFile instanceof TFile) {
+                await plugin.app.workspace.getLeaf().openFile(newFile);
+            }
+        } catch (err) {
+            new Notice(`Erreur lors de la création du fichier combiné : ${err.message}`);
+        }
     }
 
     export function initialize() {

@@ -1,7 +1,7 @@
 {
   "id": "obsidian-markdown-combiner",
   "version": "1.0.0",
-  "name": "obsidian markdown combiner",
+  "name": "Obsidian Markdown Combiner",
   "minAppVersion": "1.0.0",
   "isDesktopOnly": false,
   "description": "An Obsidian plugin to combine markdown files and their linked content into a single file.",

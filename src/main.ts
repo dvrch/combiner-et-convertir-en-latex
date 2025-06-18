@@ -17,9 +17,9 @@ export default class MarkdownCombinerPlugin extends Plugin {
 			this.combineMarkdownFiles();
 		});
 
-		// Monter le composant Svelte
+		// Créer le composant Svelte (sans le monter dans le DOM)
 		this.appView = new CombinerApp({
-			target: document.body,
+			target: document.createElement('div'), // Composant virtuel
 			props: { plugin: this }
 		});
 	}

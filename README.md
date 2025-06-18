@@ -1,138 +1,148 @@
-# Obsidian Markdown Combiner
+# Obsidian Markdown Combiner Plugin
 
-Un plugin Obsidian qui combine le contenu d'un fichier Markdown avec ses fichiers liés (embarqués) de manière récursive.
+Un plugin Obsidian qui combine récursivement le contenu d'un fichier Markdown principal avec ses fichiers Markdown liés (embeds) en un seul fichier consolidé.
 
-## Fonctionnalités
+## 🚀 Fonctionnalités
 
-- Combine le contenu d'un fichier Markdown avec ses liens embarqués (`![[note]]`)
-- Supporte les liens vers des sections spécifiques (`![[note#section]]`)
-- Supporte les liens vers des blocs spécifiques (`![[note^block-id]]`)
-- Traitement récursif des liens (les liens dans les fichiers liés sont également traités)
-- Génération automatique de noms de fichiers uniques (ajout de numéros si nécessaire)
-- Ouverture automatique du fichier combiné dans un nouveau volet
+- **Combinaison récursive** : Traite automatiquement les liens embarqués (`![[note]]`) et les inclut dans le fichier final
+- **Gestion complète des liens** : Supporte les liens internes, images, et sections
+- **Architecture modulaire** : Composants Svelte spécialisés pour une maintenance facile
+- **Configuration flexible** : Paramètres personnalisables pour le traitement et la sortie
+- **Logging avancé** : Suivi détaillé des opérations et statistiques de traitement
 
-## Installation
+## 📁 Architecture
 
-### Installation manuelle (développement)
+Le plugin utilise une architecture modulaire basée sur des composants Svelte spécialisés :
 
-1. Clonez ce repository dans votre dossier de plugins Obsidian :
-   ```
-   .obsidian/plugins/combiner et convertir en latex/
-   ```
+### Composants principaux
 
-2. Installez les dépendances :
-   ```bash
-   pnpm install
-   ```
+- **`CombinerApp.svelte`** : Orchestrateur principal qui coordonne tous les composants
+- **`MarkdownProcessor.svelte`** : Traitement spécialisé du contenu Markdown et des liens
+- **`FileManager.svelte`** : Gestion des fichiers, noms et opérations de fichiers
+- **`ConfigManager.svelte`** : Gestion de la configuration et des paramètres
+- **`LogManager.svelte`** : Logging et suivi des statistiques de traitement
 
-3. Compilez le plugin :
-   ```bash
-   pnpm build
-   ```
+### Structure des fichiers
 
-4. Redémarrez Obsidian et activez le plugin dans les paramètres
-
-### Installation depuis la communauté (à venir)
-
-1. Ouvrez les paramètres d'Obsidian
-2. Allez dans "Modules complémentaires"
-3. Désactivez le mode sans échec
-4. Cliquez sur "Parcourir" et recherchez "Markdown Combiner"
-5. Installez le plugin
-6. Activez le plugin
-
-## Utilisation
-
-1. **Ouvrez un fichier Markdown** contenant des liens embarqués (par exemple : `![[Note B]]`)
-
-2. **Lancez la commande** de l'une de ces façons :
-   - **Palette de commandes** : `Ctrl/Cmd + P` puis tapez "Combiner les fichiers Markdown avec les embeds"
-   - **Raccourci clavier** : Le raccourci sera configurable dans les paramètres du plugin
-
-3. **Résultat** :
-   - Un nouveau fichier sera créé avec le suffixe `-combined` (ex: `Note A-combined.md`)
-   - Si un fichier avec ce nom existe déjà, un numéro sera ajouté (ex: `Note A-combined-1.md`)
-   - Le fichier combiné s'ouvrira automatiquement dans un nouveau volet à droite
-
-## Exemples d'utilisation
-
-### Liens simples
-```markdown
-# Note principale
-Voici le contenu principal.
-
-![[Note B]]
+```
+src/
+├── components/
+│   ├── CombinerApp.svelte      # Composant principal (orchestrateur)
+│   ├── MarkdownProcessor.svelte # Traitement Markdown et liens
+│   ├── FileManager.svelte      # Gestion des fichiers
+│   ├── ConfigManager.svelte    # Configuration du plugin
+│   └── LogManager.svelte       # Logging et statistiques
+├── main.ts                     # Point d'entrée du plugin
+└── svelte.d.ts                 # Types Svelte
 ```
 
-### Liens vers des sections
-```markdown
-# Note principale
-Voici le contenu principal.
+## 🛠️ Installation
 
-![[Note B#Section spécifique]]
-```
+1. Clonez ce dépôt dans votre dossier de plugins Obsidian
+2. Installez les dépendances : `pnpm install`
+3. Compilez le plugin : `pnpm run build`
+4. Activez le plugin dans Obsidian
 
-### Liens vers des blocs
-```markdown
-# Note principale
-Voici le contenu principal.
+## 📖 Utilisation
 
-![[Note B^block-id]]
-```
+### Méthode 1 : Commande
+1. Ouvrez un fichier Markdown dans Obsidian
+2. Utilisez la commande `Combiner les fichiers Markdown avec les embeds` (Ctrl/Cmd + P)
+3. Le fichier combiné sera créé dans le même dossier
 
-## Développement
+### Méthode 2 : Bouton Ribbon
+1. Cliquez sur l'icône de lien dans la barre latérale
+2. Le fichier actif sera automatiquement combiné
+
+## ⚙️ Configuration
+
+Le plugin offre plusieurs options de configuration :
+
+### Paramètres de traitement
+- `processEmbeddedLinks` : Traiter les liens embarqués (`![[note]]`)
+- `processInternalLinks` : Traiter les liens internes (`[[note]]`)
+- `processImages` : Traiter les images (`![[image]]`)
+- `processExternalLinks` : Traiter les liens externes
+- `maxRecursionDepth` : Profondeur maximale de récursion (1-50)
+
+### Paramètres de nommage
+- `combinedFilePrefix` : Préfixe pour les fichiers combinés
+- `combinedFileSuffix` : Suffixe pour les fichiers combinés (défaut: `-combined`)
+
+### Paramètres d'affichage
+- `showNotifications` : Afficher les notifications
+- `openFileAfterCreation` : Ouvrir automatiquement le fichier créé
+
+## 🔧 Développement
 
 ### Prérequis
-
-- Node.js (version 18+)
+- Node.js 16+
 - pnpm
+- Obsidian
 
-### Installation des dépendances
+### Scripts disponibles
 
 ```bash
+# Installation des dépendances
 pnpm install
+
+# Développement avec hot reload
+pnpm run dev
+
+# Build de production
+pnpm run build
+
+# Vérification du code
+pnpm run lint
+
+# Tests (si configurés)
+pnpm run test
 ```
 
-### Build
+### Architecture des composants
 
-```bash
-pnpm build
-```
+Chaque composant a une responsabilité spécifique :
 
-### Développement avec rechargement automatique
+1. **CombinerApp** : Orchestration du processus complet
+2. **MarkdownProcessor** : Parsing et traitement du contenu Markdown
+3. **FileManager** : Opérations sur les fichiers et gestion des noms
+4. **ConfigManager** : Chargement/sauvegarde de la configuration
+5. **LogManager** : Suivi des opérations et statistiques
 
-```bash
-pnpm dev
-```
+### Ajout de nouvelles fonctionnalités
 
-### Vérification TypeScript
+Pour ajouter une nouvelle fonctionnalité :
 
-```bash
-pnpm svelte-check
-```
+1. Créez un nouveau composant Svelte dans `src/components/`
+2. Définissez clairement ses responsabilités
+3. Intégrez-le dans `CombinerApp.svelte`
+4. Ajoutez les tests appropriés
 
-## Structure du projet
+## 📝 Logs et Debugging
 
-```
-.
-├── src/
-│   ├── components/
-│   │   └── CombinerApp.svelte    # Composant principal avec logique de combinaison
-│   ├── main.ts                   # Point d'entrée du plugin
-│   └── svelte.d.ts              # Déclarations TypeScript pour Svelte
-├── manifest.json                 # Configuration du plugin Obsidian
-├── package.json                  # Dépendances et scripts
-├── esbuild.config.mjs           # Configuration de build
-└── tsconfig.json                # Configuration TypeScript
-```
+Le plugin inclut un système de logging complet :
 
-## Technologies utilisées
+- **Logs d'information** : Suivi des opérations normales
+- **Logs d'avertissement** : Problèmes non critiques
+- **Logs d'erreur** : Erreurs de traitement
+- **Statistiques** : Métriques de performance
 
-- **Svelte 4** : Interface utilisateur et logique métier
-- **TypeScript** : Typage statique
-- **esbuild** : Build et bundling
-- **pnpm** : Gestionnaire de paquets
+Les logs peuvent être exportés au format JSON pour analyse.
 
-## Licence
+## 🤝 Contribution
 
-MIT
+Les contributions sont les bienvenues ! Veuillez :
+
+1. Forker le projet
+2. Créer une branche pour votre fonctionnalité
+3. Suivre les conventions de code existantes
+4. Ajouter des tests si approprié
+5. Soumettre une pull request
+
+## 📄 Licence
+
+MIT License - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
+## 🆘 Support
+
+Pour signaler un bug ou demander une fonctionnalité, veuillez créer une issue sur GitHub.

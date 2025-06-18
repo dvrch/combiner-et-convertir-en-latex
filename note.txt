@@ -39,3 +39,5 @@ mais avant de corriger, creer u depot github et poster dessus
 sans oublier la config git convenable . par example giignore convenable pour pas charger tout et n importe quoi  en  locurence les installations NODE
  en svelte, rapelle toi (j ne sais pas pourquoi tu me crait des *.ts)
  et qd je demande du svelte, c est pas juste du *.ts renomé en fichier svelte , c est eviter au max *.ts a l interieur, tout faire pour qe la logique utilise le max de svelte, evitant au mieux le *.ts
+ ---------
+>  structure inteligeament lensemble , et netoyer, code simple, organisé et performant , facile pour lle travail en equipe e tla liaison via contennu YAML et API  et Base de donnés

@@ -36,27 +36,29 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 		try {
 			const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
 			if (linkedFile) {
+				// Détection du type de fichier cible
+				const isImage = /\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i.test(linkedFile.path);
+				if (isImage) {
+					// Insérer un lien markdown relatif à la position du fichier combiné
+					const relativePath = getRelativePath(basePath, linkedFile.path);
+					linkedFile.path = relativePath;
+				}
+				
 				let linkedContent = await app.vault.read(linkedFile);
 				
 				const baseName = linkedFile.basename;
-				// Gestion spéciale pour tableaux et figures
-				if (/^table__block_/i.test(baseName)) {
-					linkedContent = extractTableContent(linkedContent);
-				} else if (/^figure__block_/i.test(baseName)) {
-					linkedContent = extractFigureContent(linkedContent);
-				} else if (sectionIndicator && sectionName) {
-					linkedContent = extractSection(linkedContent, sectionName);
-				} else if (blockIndicator && blockId) {
-					linkedContent = extractBlock(linkedContent, blockId);
-				}
-				
+				// Insertion brute du contenu du fichier cible (embed complet)
+				// linkedContent contient tout le markdown du fichier cible
 				// Fallback si le contenu est vide
 				if (!linkedContent || linkedContent.trim() === '') {
 					linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
 				}
 				
-				// Traitement récursif du contenu lié
-				const recursivelyProcessed = await processAllLinks(linkedContent, linkedFile.parent?.path || '');
+				// Traitement récursif du contenu lié (pour le markdown uniquement)
+				let recursivelyProcessed = linkedContent;
+				if (!isImage) {
+					recursivelyProcessed = await processAllLinks(linkedContent, linkedFile.parent?.path || '');
+				}
 				processedText = processedText.replace(fullMatch, recursivelyProcessed);
 			} else {
 				processedText = processedText.replace(fullMatch, `<!-- Linked file not found: ${noteName} -->`);

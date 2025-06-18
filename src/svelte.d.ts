@@ -1,4 +1,4 @@
 declare module '*.svelte' {
     import { SvelteComponent } from 'svelte';
-    export default class extends SvelteComponent<any> {}
+    export default class extends SvelteComponent<Record<string, unknown>> {}
 } 

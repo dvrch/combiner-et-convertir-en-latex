@@ -1,4 +1,4 @@
-# Obsidian Markdown Combiner Plugin
+![1750280910820](image/README/1750280910820.png)# Obsidian Markdown Combiner Plugin
 
 Un plugin Obsidian qui combine récursivement le contenu d'un fichier Markdown principal avec ses fichiers Markdown liés (embeds) en un seul fichier consolidé.
 

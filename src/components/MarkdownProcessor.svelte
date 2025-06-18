@@ -38,10 +38,21 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 			if (linkedFile) {
 				let linkedContent = await app.vault.read(linkedFile);
 				
-				if (sectionIndicator && sectionName) {
+				const baseName = linkedFile.basename;
+				// Gestion spéciale pour tableaux et figures
+				if (/^table__block_/i.test(baseName)) {
+					linkedContent = extractTableContent(linkedContent);
+				} else if (/^figure__block_/i.test(baseName)) {
+					linkedContent = extractFigureContent(linkedContent);
+				} else if (sectionIndicator && sectionName) {
 					linkedContent = extractSection(linkedContent, sectionName);
 				} else if (blockIndicator && blockId) {
 					linkedContent = extractBlock(linkedContent, blockId);
+				}
+				
+				// Fallback si le contenu est vide
+				if (!linkedContent || linkedContent.trim() === '') {
+					linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
 				}
 				
 				// Traitement récursif du contenu lié
@@ -192,26 +203,36 @@ function getRelativePath(fromPath: string, toPath: string): string {
 
 function extractSection(content: string, sectionName: string): string {
 	const lines = content.split('\n');
-	const sectionRegex = new RegExp(`^#+\\s*${sectionName}$`);
+	// Tolérance : ignore la casse, espaces, tirets, underscores
+	const normalizedSection = sectionName.trim().toLowerCase().replace(/[-_\s]+/g, '');
 	let inSection = false;
 	const sectionContent: string[] = [];
 	let currentLevel = 0;
-	
+	let found = false;
+
 	for (const line of lines) {
 		const headingMatch = line.match(/^(#+)\s*(.*)$/);
 		if (headingMatch) {
 			const level = headingMatch[1].length;
-			if (sectionRegex.test(line)) {
+			const headingText = headingMatch[2].trim().toLowerCase().replace(/[-_\s]+/g, '');
+			if (headingText === normalizedSection) {
 				inSection = true;
 				currentLevel = level;
 				sectionContent.push(line);
+				found = true;
 			} else if (inSection && level <= currentLevel) {
 				inSection = false;
 			}
 		}
 		if (inSection) sectionContent.push(line);
 	}
-	return sectionContent.join('\n');
+
+	if (found && sectionContent.length > 0) {
+		return sectionContent.join('\n');
+	} else {
+		// Fallback : insérer tout le contenu avec un commentaire d'avertissement
+		return `<!-- Section '${sectionName}' non trouvée, insertion du contenu complet de la note -->\n` + content;
+	}
 }
 
 function extractBlock(content: string, blockId: string): string {
@@ -224,6 +245,41 @@ function extractBlock(content: string, blockId: string): string {
 		}
 	}
 	return '';
+}
+
+function extractTableContent(content: string): string {
+	const lines = content.split('\n');
+	let result: string[] = [];
+	// Cherche la ligne '=this.caption' si elle existe
+	const captionIdx = lines.findIndex(line => line.trim().startsWith('=this.caption'));
+	if (captionIdx !== -1) {
+		result.push(lines[captionIdx]);
+	}
+	// Cherche la première ligne de tableau
+	const startIdx = lines.findIndex(line => line.trim().startsWith('|'));
+	if (startIdx === -1) return '<!-- Table markdown non trouvé -->';
+	// Ajoute toutes les lignes du tableau jusqu'à la première ligne vide ou la fin
+	for (let i = startIdx; i < lines.length; i++) {
+		if (lines[i].trim() === '') break;
+		result.push(lines[i]);
+	}
+	return result.join('\n');
+}
+
+function extractFigureContent(content: string): string {
+	const lines = content.split('\n');
+	let result: string[] = [];
+	for (let i = 0; i < lines.length; i++) {
+		if (lines[i].includes('![[')) {
+			// Ajoute la ligne précédente si c'est une caption
+			if (i > 0 && lines[i-1].trim().startsWith('caption')) {
+				result.push(lines[i-1]);
+			}
+			result.push(lines[i]);
+		}
+	}
+	if (result.length === 0) return '<!-- Figure/image non trouvée -->';
+	return result.join('\n');
 }
 
 // Méthode exposée pour traiter le contenu Markdown

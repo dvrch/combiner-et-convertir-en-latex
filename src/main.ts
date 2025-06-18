@@ -1,25 +1,18 @@
 import { Plugin } from 'obsidian';
-import PluginMain from './components/PluginMain.svelte';
+import CombinerApp from './components/CombinerApp.svelte';
 
 export default class MarkdownCombinerPlugin extends Plugin {
-	private main: PluginMain | null = null;
+	appView: CombinerApp | null = null;
 
 	async onload() {
-		this.main = new PluginMain({
+		this.appView = new CombinerApp({
 			target: document.body,
-			props: {
-				plugin: this
-			}
+			props: { plugin: this }
 		});
-		
-		this.main.initialize();
 	}
 
 	onunload() {
-		if (this.main) {
-			this.main.cleanup();
-			this.main.$destroy();
-			this.main = null;
-		}
+		this.appView?.$destroy();
+		this.appView = null;
 	}
 } 

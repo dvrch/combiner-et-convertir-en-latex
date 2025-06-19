@@ -16,6 +16,9 @@ interface ProcessedLink {
 let processedFiles = new Set<string>();
 let processingStatus = '';
 
+// Liste globale des fichiers inclus dans le combiné
+let includedFiles = new Set<string>();
+
 // Traitement des liens embarqués (![[note]])
 async function processEmbeddedLinks(text: string): Promise<string> {
 	const embedRegex = /!\[\[([^\]#|^]+)(?:(#)([^\]|]+))?(?:(\^)([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
@@ -32,7 +35,6 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 
 		// Si c'est une image, ajouter un commentaire Obsidian juste avant
 		if (/\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i.test(noteName)) {
-			// Ajoute le commentaire avant le lien image
 			const imageComment = `%% EMBED IMAGE: ${noteName} %%\n`;
 			processedText = processedText.replace(fullMatch, imageComment + fullMatch);
 			continue;
@@ -40,6 +42,7 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 
 		if (processedFiles.has(noteName)) continue;
 		processedFiles.add(noteName);
+		includedFiles.add(noteName.toLowerCase());
 
 		try {
 			const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
@@ -48,10 +51,8 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 				if (!linkedContent || linkedContent.trim() === '') {
 					linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
 				}
-				// Suffixer les ids dans le contenu inclus
 				let recursivelyProcessed = suffixIdsForCombined(linkedContent);
 				recursivelyProcessed = await processAllLinks(recursivelyProcessed, linkedFile.parent?.path || '');
-				// Ajoute les commentaires Obsidian autour du contenu inséré
 				const startComment = `%% EMBED START: ${noteName} %%\n`;
 				const endComment = `\n%% EMBED END: ${noteName} %%`;
 				processedText = processedText.replace(fullMatch, startComment + recursivelyProcessed + endComment);
@@ -87,19 +88,20 @@ async function processInternalLinks(text: string): Promise<string> {
 			continue;
 		}
 
-		// Si lien vers section
-		if (sectionIndicator && sectionName) {
-			const anchor = sectionName.replace(/\s+/g, '-').toLowerCase() + '-comb';
-			const textLabel = displayText || sectionName;
-			processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
-			continue;
-		}
-		// Si lien vers bloc
-		if (blockIndicator && blockId) {
-			const anchor = blockId + '-comb';
-			const textLabel = displayText || blockId;
-			processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
-			continue;
+		// Si la cible du lien est un fichier inclus, réécrire en ancre locale
+		if (includedFiles.has(noteName.toLowerCase())) {
+			if (sectionIndicator && sectionName) {
+				const anchor = sectionName.replace(/\s+/g, '-').toLowerCase() + '-comb';
+				const textLabel = displayText || sectionName;
+				processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
+				continue;
+			}
+			if (blockIndicator && blockId) {
+				const anchor = blockId + '-comb';
+				const textLabel = displayText || blockId;
+				processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
+				continue;
+			}
 		}
 		// Sinon, garder le lien original ou traiter comme avant
 	}
@@ -286,11 +288,11 @@ function extractFigureContent(content: string): string {
 }
 
 // Ajoute un suffixe -comb aux titres et blocs dans le contenu inclus
-function suffixIdsForCombined(content) {
+function suffixIdsForCombined(content: string): string {
 	// Suffixer les titres
-	content = content.replace(/^(#+)([^\n]*)/gm, (m, hashes, title) => `${hashes}${title}-comb`);
+	content = content.replace(/^(#+)([^\n]*)/gm, (m: string, hashes: string, title: string) => `${hashes}${title}-comb`);
 	// Suffixer les blockid
-	content = content.replace(/\^(\w+)$/gm, (m, id) => `^${id}-comb`);
+	content = content.replace(/\^(\w+)$/gm, (m: string, id: string) => `^${id}-comb`);
 	return content;
 }
 

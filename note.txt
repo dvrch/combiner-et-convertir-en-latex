@@ -56,3 +56,4 @@ c bien de garder  le ration de l image embeded, mai je ne comprend pas pourquoi 
 ------
 > internaliser les renvois references croisés dans le fichier combiné entre les éléments emboités
 > On peut ajouter la mention `comb` dans les references et renvois du fichier combiné pour distinguer
+> tu n as pas bien sais: si Apointee sur B; et A et B soit appeélé dans  le meme fichier C ; en combinant C, ldans le C combiné, l amboité A' de A doit dans C pointé sur l amboité B' de B

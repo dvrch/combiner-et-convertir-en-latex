@@ -47,3 +47,6 @@ c bien de garder  le ration de l image embeded, mai je ne comprend pas pourquoi 
 > je penses que certaain fichier  apelé devrait rester tel quel, a l instar des images ou de tuc extre/externe  comme svg
 -----
  marquer danṡle bloc embeded les endroit imbriqués avec leur noms
+
+ > format de commentires dans obsidian : `%%comt ici, mmem en multiligne%%`
+ 

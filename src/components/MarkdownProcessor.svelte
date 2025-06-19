@@ -30,8 +30,11 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 		const blockIndicator = match[4];
 		const blockId = match[5];
 
-		// Si c'est une image, ne rien modifier
+		// Si c'est une image, ajouter un commentaire Obsidian juste avant
 		if (/\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i.test(noteName)) {
+			// Ajoute le commentaire avant le lien image
+			const imageComment = `%% EMBED IMAGE: ${noteName} %%\n`;
+			processedText = processedText.replace(fullMatch, imageComment + fullMatch);
 			continue;
 		}
 
@@ -47,7 +50,10 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 				}
 				let recursivelyProcessed = linkedContent;
 				recursivelyProcessed = await processAllLinks(linkedContent, linkedFile.parent?.path || '');
-				processedText = processedText.replace(fullMatch, recursivelyProcessed);
+				// Ajoute les commentaires Obsidian autour du contenu inséré
+				const startComment = `%% EMBED START: ${noteName} %%\n`;
+				const endComment = `\n%% EMBED END: ${noteName} %%`;
+				processedText = processedText.replace(fullMatch, startComment + recursivelyProcessed + endComment);
 			} else {
 				processedText = processedText.replace(fullMatch, `![[${noteName}]]`);
 			}

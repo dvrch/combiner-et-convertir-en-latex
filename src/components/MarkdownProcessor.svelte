@@ -48,8 +48,9 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 				if (!linkedContent || linkedContent.trim() === '') {
 					linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
 				}
-				let recursivelyProcessed = linkedContent;
-				recursivelyProcessed = await processAllLinks(linkedContent, linkedFile.parent?.path || '');
+				// Suffixer les ids dans le contenu inclus
+				let recursivelyProcessed = suffixIdsForCombined(linkedContent);
+				recursivelyProcessed = await processAllLinks(recursivelyProcessed, linkedFile.parent?.path || '');
 				// Ajoute les commentaires Obsidian autour du contenu inséré
 				const startComment = `%% EMBED START: ${noteName} %%\n`;
 				const endComment = `\n%% EMBED END: ${noteName} %%`;
@@ -86,26 +87,21 @@ async function processInternalLinks(text: string): Promise<string> {
 			continue;
 		}
 
-		try {
-			const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
-			if (linkedFile) {
-				let newLink = `[[${linkedFile.basename}`;
-				if (sectionIndicator && sectionName) {
-					newLink += `#${sectionName}`;
-				} else if (blockIndicator && blockId) {
-					newLink += `^${blockId}`;
-				}
-				if (displayText) {
-					newLink += `|${displayText}`;
-				}
-				newLink += ']]';
-				processedText = processedText.replace(fullMatch, newLink);
-			} else {
-				processedText = processedText.replace(fullMatch, `<!-- Link not found: ${noteName} -->${fullMatch}`);
-			}
-		} catch (err) {
-			processedText = processedText.replace(fullMatch, `<!-- Error processing link: ${noteName} -->${fullMatch}`);
+		// Si lien vers section
+		if (sectionIndicator && sectionName) {
+			const anchor = sectionName.replace(/\s+/g, '-').toLowerCase() + '-comb';
+			const textLabel = displayText || sectionName;
+			processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
+			continue;
 		}
+		// Si lien vers bloc
+		if (blockIndicator && blockId) {
+			const anchor = blockId + '-comb';
+			const textLabel = displayText || blockId;
+			processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
+			continue;
+		}
+		// Sinon, garder le lien original ou traiter comme avant
 	}
 	return processedText;
 }
@@ -287,6 +283,15 @@ function extractFigureContent(content: string): string {
 	}
 	if (result.length === 0) return '<!-- Figure/image non trouvée -->';
 	return result.join('\n');
+}
+
+// Ajoute un suffixe -comb aux titres et blocs dans le contenu inclus
+function suffixIdsForCombined(content) {
+	// Suffixer les titres
+	content = content.replace(/^(#+)([^\n]*)/gm, (m, hashes, title) => `${hashes}${title}-comb`);
+	// Suffixer les blockid
+	content = content.replace(/\^(\w+)$/gm, (m, id) => `^${id}-comb`);
+	return content;
 }
 
 // Méthode exposée pour traiter le contenu Markdown

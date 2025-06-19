@@ -49,4 +49,10 @@ c bien de garder  le ration de l image embeded, mai je ne comprend pas pourquoi 
  marquer danṡle bloc embeded les endroit imbriqués avec leur noms
 
  > format de commentires dans obsidian : `%%comt ici, mmem en multiligne%%`
- 
+-------
+
+> references croisés dans le fichier combiné: | si une reference, un revois pointait entre 2 fichiers amboités dans le fichier combiné, le revois sera desormais dans ce meme fichier ou les 2 se trouvent , don tout internalisé dans le fichier combiné  (puisque qu on aura a faire un docmet comple avec references croisés apres) 
+> ( nb : je ne sais pas comment seront gérés les marques de renvois dans le  vault, j ai l impresson que les renvois seront dupliqué, et cela peut preter a confusion)
+------
+> internaliser les renvois references croisés dans le fichier combiné entre les éléments emboités
+> On peut ajouter la mention `comb` dans les references et renvois du fichier combiné pour distinguer

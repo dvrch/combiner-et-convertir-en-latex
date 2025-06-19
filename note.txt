@@ -41,3 +41,9 @@ sans oublier la config git convenable . par example giignore convenable pour pas
  et qd je demande du svelte, c est pas juste du *.ts renomé en fichier svelte , c est eviter au max *.ts a l interieur, tout faire pour qe la logique utilise le max de svelte, evitant au mieux le *.ts
  ---------
 >  structure inteligeament lensemble , et netoyer, code simple, organisé et performant , facile pour lle travail en equipe e tla liaison via contennu YAML et API  et Base de donnés
+----------
+
+c bien de garder  le ration de l image embeded, mai je ne comprend pas pourquoi l extention du embeded n est pas conservé 
+> je penses que certaain fichier  apelé devrait rester tel quel, a l instar des images ou de tuc extre/externe  comme svg
+-----
+ marquer danṡle bloc embeded les endroit imbriqués avec leur noms

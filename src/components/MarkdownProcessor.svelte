@@ -29,36 +29,24 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 		const sectionName = match[3];
 		const blockIndicator = match[4];
 		const blockId = match[5];
-		
+
+		// Si c'est une image, ne rien modifier
+		if (/\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i.test(noteName)) {
+			continue;
+		}
+
 		if (processedFiles.has(noteName)) continue;
 		processedFiles.add(noteName);
-		
+
 		try {
 			const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
 			if (linkedFile) {
-				// Détection du type de fichier cible
-				const isImage = /\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i.test(linkedFile.path);
-				if (isImage) {
-					// Insérer un lien markdown relatif à la position du fichier combiné
-					const relativePath = getRelativePath(basePath, linkedFile.path);
-					linkedFile.path = relativePath;
-				}
-				
 				let linkedContent = await app.vault.read(linkedFile);
-				
-				const baseName = linkedFile.basename;
-				// Insertion brute du contenu du fichier cible (embed complet)
-				// linkedContent contient tout le markdown du fichier cible
-				// Fallback si le contenu est vide
 				if (!linkedContent || linkedContent.trim() === '') {
 					linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
 				}
-				
-				// Traitement récursif du contenu lié (pour le markdown uniquement)
 				let recursivelyProcessed = linkedContent;
-				if (!isImage) {
-					recursivelyProcessed = await processAllLinks(linkedContent, linkedFile.parent?.path || '');
-				}
+				recursivelyProcessed = await processAllLinks(linkedContent, linkedFile.parent?.path || '');
 				processedText = processedText.replace(fullMatch, recursivelyProcessed);
 			} else {
 				processedText = processedText.replace(fullMatch, `![[${noteName}]]`);
@@ -86,11 +74,15 @@ async function processInternalLinks(text: string): Promise<string> {
 		const blockIndicator = match[4];
 		const blockId = match[5];
 		const displayText = match[6];
-		
+
+		// Si c'est une image, ne rien modifier
+		if (/\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i.test(noteName)) {
+			continue;
+		}
+
 		try {
 			const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
 			if (linkedFile) {
-				// Créer un lien adapté au nouveau contexte
 				let newLink = `[[${linkedFile.basename}`;
 				if (sectionIndicator && sectionName) {
 					newLink += `#${sectionName}`;
@@ -101,10 +93,8 @@ async function processInternalLinks(text: string): Promise<string> {
 					newLink += `|${displayText}`;
 				}
 				newLink += ']]';
-				
 				processedText = processedText.replace(fullMatch, newLink);
 			} else {
-				// Garder le lien original si le fichier n'est pas trouvé
 				processedText = processedText.replace(fullMatch, `<!-- Link not found: ${noteName} -->${fullMatch}`);
 			}
 		} catch (err) {
@@ -122,11 +112,21 @@ async function processImages(text: string): Promise<string> {
 	
 	while ((match = imageRegex.exec(text)) !== null) {
 		const fullMatch = match[0];
-		const imageName = match[1].trim();
+		let imageName = match[1].trim();
 		const sectionIndicator = match[2];
 		const sectionName = match[3];
 		const altText = match[4];
-		
+
+		// Correction : s'assurer que imageName garde son extension originale
+		// Si imageName se termine par .md mais que ce n'est pas une image, on ne touche pas
+		// Si imageName est une image, on ne modifie jamais l'extension
+		const imageExtRegex = /\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i;
+		if (!imageExtRegex.test(imageName)) {
+			// Si ce n'est pas une image, on laisse tel quel
+		} else {
+			// Si c'est une image, on s'assure de ne jamais ajouter .md
+			imageName = imageName.replace(/\.md$/i, '');
+		}
 		try {
 			const imageFile = app.metadataCache.getFirstLinkpathDest(imageName, '');
 			if (imageFile) {

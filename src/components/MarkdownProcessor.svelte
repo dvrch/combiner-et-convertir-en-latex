@@ -130,9 +130,9 @@ async function processImages(text: string): Promise<string> {
 		try {
 			const imageFile = app.metadataCache.getFirstLinkpathDest(imageName, '');
 			if (imageFile) {
-				// Adapter le chemin de l'image au nouveau contexte
-				const relativePath = getRelativePath(basePath, imageFile.path);
-				let newImage = `![[${relativePath}`;
+				// Chemin Obsidian (toujours relatif à la racine du vault, sans ../)
+				const obsidianPath = imageFile.path.replace(/\\/g, '/');
+				let newImage = `![[${obsidianPath}`;
 				if (sectionIndicator && sectionName) {
 					newImage += `#${sectionName}`;
 				}
@@ -140,13 +140,12 @@ async function processImages(text: string): Promise<string> {
 					newImage += `|${altText}`;
 				}
 				newImage += ']]';
-				
 				processedText = processedText.replace(fullMatch, newImage);
 			} else {
-				processedText = processedText.replace(fullMatch, `[[${imageName}]]`);
+				processedText = processedText.replace(fullMatch, `![[${imageName}]]`);
 			}
 		} catch (err) {
-			processedText = processedText.replace(fullMatch, `[[${imageName}]]`);
+			processedText = processedText.replace(fullMatch, `![[${imageName}]]`);
 		}
 	}
 	return processedText;

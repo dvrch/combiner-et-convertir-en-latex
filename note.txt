@@ -45,15 +45,17 @@ sans oublier la config git convenable . par example giignore convenable pour pas
 
 c bien de garder  le ration de l image embeded, mai je ne comprend pas pourquoi l extention du embeded n est pas conservé 
 > je penses que certaain fichier  apelé devrait rester tel quel, a l instar des images ou de tuc extre/externe  comme svg
------
+--------
  marquer danṡle bloc embeded les endroit imbriqués avec leur noms
 
  > format de commentires dans obsidian : `%%comt ici, mmem en multiligne%%`
--------
+--------
 
 > references croisés dans le fichier combiné: | si une reference, un revois pointait entre 2 fichiers amboités dans le fichier combiné, le revois sera desormais dans ce meme fichier ou les 2 se trouvent , don tout internalisé dans le fichier combiné  (puisque qu on aura a faire un docmet comple avec references croisés apres) 
 > ( nb : je ne sais pas comment seront gérés les marques de renvois dans le  vault, j ai l impresson que les renvois seront dupliqué, et cela peut preter a confusion)
-------
+---------
 > internaliser les renvois references croisés dans le fichier combiné entre les éléments emboités
 > On peut ajouter la mention `comb` dans les references et renvois du fichier combiné pour distinguer
 > tu n as pas bien sais: si Apointee sur B; et A et B soit appeélé dans  le meme fichier C ; en combinant C, ldans le C combiné, l amboité A' de A doit dans C pointé sur l amboité B' de B
+
+---------

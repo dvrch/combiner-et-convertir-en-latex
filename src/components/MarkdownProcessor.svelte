@@ -53,9 +53,11 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 				}
 				let recursivelyProcessed = suffixIdsForCombined(linkedContent);
 				recursivelyProcessed = await processAllLinks(recursivelyProcessed, linkedFile.parent?.path || '');
+				// Ajoute une ancre HTML avant le commentaire d'embed
+				const anchor = `<a id="${noteName}-comb"></a>\n`;
 				const startComment = `%% EMBED START: ${noteName} %%\n`;
 				const endComment = `\n%% EMBED END: ${noteName} %%`;
-				processedText = processedText.replace(fullMatch, startComment + recursivelyProcessed + endComment);
+				processedText = processedText.replace(fullMatch, anchor + startComment + recursivelyProcessed + endComment);
 			} else {
 				processedText = processedText.replace(fullMatch, `![[${noteName}]]`);
 			}
@@ -90,6 +92,13 @@ async function processInternalLinks(text: string): Promise<string> {
 
 		// Si la cible du lien est un fichier inclus, réécrire en ancre locale
 		if (includedFiles.has(noteName.toLowerCase())) {
+			// Lien vers un fichier entier
+			if (!sectionIndicator && !blockIndicator) {
+				const anchor = `${noteName}-comb`;
+				const textLabel = displayText || noteName;
+				processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
+				continue;
+			}
 			if (sectionIndicator && sectionName) {
 				const anchor = sectionName.replace(/\s+/g, '-').toLowerCase() + '-comb';
 				const textLabel = displayText || sectionName;

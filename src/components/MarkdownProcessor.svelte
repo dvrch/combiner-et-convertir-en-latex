@@ -61,10 +61,10 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 				}
 				processedText = processedText.replace(fullMatch, recursivelyProcessed);
 			} else {
-				processedText = processedText.replace(fullMatch, `<!-- Linked file not found: ${noteName} -->`);
+				processedText = processedText.replace(fullMatch, `![[${noteName}]]`);
 			}
 		} catch (err) {
-			processedText = processedText.replace(fullMatch, `<!-- Error: Could not process ${noteName} -->`);
+			processedText = processedText.replace(fullMatch, `![[${noteName}]]`);
 		} finally {
 			processedFiles.delete(noteName);
 		}
@@ -143,10 +143,10 @@ async function processImages(text: string): Promise<string> {
 				
 				processedText = processedText.replace(fullMatch, newImage);
 			} else {
-				processedText = processedText.replace(fullMatch, `<!-- Image not found: ${imageName} -->`);
+				processedText = processedText.replace(fullMatch, `[[${imageName}]]`);
 			}
 		} catch (err) {
-			processedText = processedText.replace(fullMatch, `<!-- Error processing image: ${imageName} -->`);
+			processedText = processedText.replace(fullMatch, `[[${imageName}]]`);
 		}
 	}
 	return processedText;

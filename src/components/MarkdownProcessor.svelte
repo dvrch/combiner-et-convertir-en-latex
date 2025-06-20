@@ -4,6 +4,7 @@ import { App } from 'obsidian';
 export let app: App;
 export let basePath: string;
 export let config: any = null;
+export let combinedFileName: string = '';
 
 // Interface pour les liens traités
 interface ProcessedLink {
@@ -79,7 +80,7 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 				extractAnchorsFromContent(noteName, recursivelyProcessed);
 				recursivelyProcessed = await processAllLinks(recursivelyProcessed, linkedFile.parent?.path || '');
 				// Ajoute une ancre HTML avant le commentaire d'embed
-				const anchor = `<a id="${noteName}-comb"></a>\n`;
+				const anchor = `<a id=\"${noteName}-comb\"></a>\n`;
 				const startComment = `%% EMBED START: ${noteName} %%\n`;
 				const endComment = `\n%% EMBED END: ${noteName} %%`;
 				processedText = processedText.replace(fullMatch, anchor + startComment + recursivelyProcessed + endComment);
@@ -122,25 +123,25 @@ async function processInternalLinks(text: string): Promise<string> {
 			if (!sectionIndicator && !blockIndicator) {
 				const anchor = `${noteName}-comb`;
 				const textLabel = displayText || noteName;
-				processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
+				// Lien Obsidian vers le fichier combiné et l'ancre
+				processedText = processedText.replace(fullMatch, `[[${combinedFileName}#${anchor}|${textLabel}]]`);
 				continue;
 			}
 			// Lien vers une section
 			if (sectionIndicator && sectionName) {
-				// Cherche l'ancre correspondante
 				const anchor = sectionName.replace(/\s+/g, '-').toLowerCase() + '-comb';
 				if (embed.sections.includes(anchor)) {
 					const textLabel = displayText || sectionName;
-					processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
+					processedText = processedText.replace(fullMatch, `[[${combinedFileName}#${anchor}|${textLabel}]]`);
 					continue;
 				}
 			}
 			// Lien vers un bloc
 			if (blockIndicator && blockId) {
-				const anchor = blockId + '-comb';
-				if (embed.blocks.includes(anchor)) {
+				const anchor = '^' + blockId + '-comb';
+				if (embed.blocks.includes(blockId + '-comb')) {
 					const textLabel = displayText || blockId;
-					processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
+					processedText = processedText.replace(fullMatch, `[[${combinedFileName}#${anchor}|${textLabel}]]`);
 					continue;
 				}
 			}

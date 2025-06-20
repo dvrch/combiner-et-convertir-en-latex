@@ -79,11 +79,11 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 				// Extraire les ancres de ce contenu
 				extractAnchorsFromContent(noteName, recursivelyProcessed);
 				recursivelyProcessed = await processAllLinks(recursivelyProcessed, linkedFile.parent?.path || '');
-				// Ajoute une ancre HTML avant le commentaire d'embed
-				const anchor = `<a id=\"${noteName}-comb\"></a>\n`;
+				// Ajoute un titre markdown unique avant le commentaire d'embed
+				const anchorTitle = `## ${noteName}-comb\n`;
 				const startComment = `%% EMBED START: ${noteName} %%\n`;
 				const endComment = `\n%% EMBED END: ${noteName} %%`;
-				processedText = processedText.replace(fullMatch, anchor + startComment + recursivelyProcessed + endComment);
+				processedText = processedText.replace(fullMatch, anchorTitle + startComment + recursivelyProcessed + endComment);
 			} else {
 				processedText = processedText.replace(fullMatch, `![[${noteName}]]`);
 			}

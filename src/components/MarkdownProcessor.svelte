@@ -19,6 +19,29 @@ let processingStatus = '';
 // Liste globale des fichiers inclus dans le combiné
 let includedFiles = new Set<string>();
 
+// Table des fichiers inclus comme embed et leurs sections/blocs
+let embedAnchors: Record<string, {file: string, sections: string[], blocks: string[]}> = {};
+
+function extractAnchorsFromContent(file: string, content: string) {
+	// Titres
+	const sectionAnchors: string[] = [];
+	const blockAnchors: string[] = [];
+	const lines = content.split('\n');
+	for (const line of lines) {
+		const headingMatch = line.match(/^(#+)\s*(.*)$/);
+		if (headingMatch) {
+			// Génère l'ancre markdown (comme Obsidian)
+			const anchor = headingMatch[2].trim().replace(/\s+/g, '-').toLowerCase() + '-comb';
+			sectionAnchors.push(anchor);
+		}
+		const blockMatch = line.match(/\^(\w+)-comb$/);
+		if (blockMatch) {
+			blockAnchors.push(blockMatch[1] + '-comb');
+		}
+	}
+	embedAnchors[file.toLowerCase()] = {file, sections: sectionAnchors, blocks: blockAnchors};
+}
+
 // Traitement des liens embarqués (![[note]])
 async function processEmbeddedLinks(text: string): Promise<string> {
 	const embedRegex = /!\[\[([^\]#|^]+)(?:(#)([^\]|]+))?(?:(\^)([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
@@ -52,6 +75,8 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 					linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
 				}
 				let recursivelyProcessed = suffixIdsForCombined(linkedContent);
+				// Extraire les ancres de ce contenu
+				extractAnchorsFromContent(noteName, recursivelyProcessed);
 				recursivelyProcessed = await processAllLinks(recursivelyProcessed, linkedFile.parent?.path || '');
 				// Ajoute une ancre HTML avant le commentaire d'embed
 				const anchor = `<a id="${noteName}-comb"></a>\n`;
@@ -90,8 +115,9 @@ async function processInternalLinks(text: string): Promise<string> {
 			continue;
 		}
 
-		// Si la cible du lien est un fichier inclus, réécrire en ancre locale
-		if (includedFiles.has(noteName.toLowerCase())) {
+		// Si la cible du lien est un fichier inclus comme embed
+		const embed = embedAnchors[noteName.toLowerCase()];
+		if (embed) {
 			// Lien vers un fichier entier
 			if (!sectionIndicator && !blockIndicator) {
 				const anchor = `${noteName}-comb`;
@@ -99,17 +125,24 @@ async function processInternalLinks(text: string): Promise<string> {
 				processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
 				continue;
 			}
+			// Lien vers une section
 			if (sectionIndicator && sectionName) {
+				// Cherche l'ancre correspondante
 				const anchor = sectionName.replace(/\s+/g, '-').toLowerCase() + '-comb';
-				const textLabel = displayText || sectionName;
-				processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
-				continue;
+				if (embed.sections.includes(anchor)) {
+					const textLabel = displayText || sectionName;
+					processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
+					continue;
+				}
 			}
+			// Lien vers un bloc
 			if (blockIndicator && blockId) {
 				const anchor = blockId + '-comb';
-				const textLabel = displayText || blockId;
-				processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
-				continue;
+				if (embed.blocks.includes(anchor)) {
+					const textLabel = displayText || blockId;
+					processedText = processedText.replace(fullMatch, `[${textLabel}](#${anchor})`);
+					continue;
+				}
 			}
 		}
 		// Sinon, garder le lien original ou traiter comme avant

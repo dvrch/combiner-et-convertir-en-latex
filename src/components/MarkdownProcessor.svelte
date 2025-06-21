@@ -79,11 +79,11 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 				// Extraire les ancres de ce contenu
 				extractAnchorsFromContent(noteName, recursivelyProcessed);
 				recursivelyProcessed = await processAllLinks(recursivelyProcessed, linkedFile.parent?.path || '');
-				// Ajoute un titre markdown unique avant le commentaire d'embed
-				const anchorTitle = `## ${noteName}-comb\n`;
+				// Ajoute une ancre de bloc markdown avant le commentaire d'embed
+				const blockAnchor = `^${noteName}-comb\n`;
 				const startComment = `%% EMBED START: ${noteName} %%\n`;
 				const endComment = `\n%% EMBED END: ${noteName} %%`;
-				processedText = processedText.replace(fullMatch, anchorTitle + startComment + recursivelyProcessed + endComment);
+				processedText = processedText.replace(fullMatch, blockAnchor + startComment + recursivelyProcessed + endComment);
 			} else {
 				processedText = processedText.replace(fullMatch, `![[${noteName}]]`);
 			}
@@ -119,11 +119,10 @@ async function processInternalLinks(text: string): Promise<string> {
 		// Si la cible du lien est un fichier inclus comme embed
 		const embed = embedAnchors[noteName.toLowerCase()];
 		if (embed) {
-			// Lien vers un fichier entier
+			// Lien vers un fichier entier ou sans section/bloc
 			if (!sectionIndicator && !blockIndicator) {
-				const anchor = `${noteName}-comb`;
+				const anchor = `^${noteName}-comb`;
 				const textLabel = displayText || noteName;
-				// Lien Obsidian vers le fichier combiné et l'ancre
 				processedText = processedText.replace(fullMatch, `[[${combinedFileName}#${anchor}|${textLabel}]]`);
 				continue;
 			}

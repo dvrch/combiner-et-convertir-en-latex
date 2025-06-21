@@ -29,13 +29,13 @@ function extractAnchorsFromContent(file: string, content: string) {
 	const blockAnchors: string[] = [];
 	const lines = content.split('\n');
 	for (const line of lines) {
-		const headingMatch = line.match(/^(#+)\s*(.*)$/);
+		const headingMatch = line.match(/^(#+)\s*(.*)-comb$/);
 		if (headingMatch) {
-			// Génère l'ancre markdown (comme Obsidian)
-			const anchor = headingMatch[2].trim().replace(/\s+/g, '-').toLowerCase() + '-comb';
+			// Génère l'ancre markdown (comme Obsidian), en remplaçant les _ par des -
+			const anchor = headingMatch[2].trim().replace(/_/g, '-').replace(/\s+/g, '-').toLowerCase() + '-comb';
 			sectionAnchors.push(anchor);
 		}
-		const blockMatch = line.match(/\^(\w+)-comb$/);
+		const blockMatch = line.match(/\^([\w-]+)-comb$/); // Gère les -
 		if (blockMatch) {
 			blockAnchors.push(blockMatch[1] + '-comb');
 		}
@@ -79,8 +79,8 @@ async function processEmbeddedLinks(text: string): Promise<string> {
 				// Extraire les ancres de ce contenu
 				extractAnchorsFromContent(noteName, recursivelyProcessed);
 				recursivelyProcessed = await processAllLinks(recursivelyProcessed, linkedFile.parent?.path || '');
-				// Ajoute une ancre de bloc markdown avant le commentaire d'embed
-				const blockAnchor = `^${noteName}-comb\n`;
+				// Ajoute une ancre de bloc markdown, en remplaçant les _ par des -
+				const blockAnchor = `^${noteName.replace(/_/g, '-')}-comb\n`;
 				const startComment = `%% EMBED START: ${noteName} %%\n`;
 				const endComment = `\n%% EMBED END: ${noteName} %%`;
 				processedText = processedText.replace(fullMatch, blockAnchor + startComment + recursivelyProcessed + endComment);
@@ -121,14 +121,14 @@ async function processInternalLinks(text: string): Promise<string> {
 		if (embed) {
 			// Lien vers un fichier entier ou sans section/bloc
 			if (!sectionIndicator && !blockIndicator) {
-				const anchor = `^${noteName}-comb`;
+				const anchor = `^${noteName.replace(/_/g, '-')}-comb`;
 				const textLabel = displayText || noteName;
 				processedText = processedText.replace(fullMatch, `[[${combinedFileName}#${anchor}|${textLabel}]]`);
 				continue;
 			}
 			// Lien vers une section
 			if (sectionIndicator && sectionName) {
-				const anchor = sectionName.replace(/\s+/g, '-').toLowerCase() + '-comb';
+				const anchor = sectionName.replace(/_/g, '-').replace(/\s+/g, '-').toLowerCase() + '-comb';
 				if (embed.sections.includes(anchor)) {
 					const textLabel = displayText || sectionName;
 					processedText = processedText.replace(fullMatch, `[[${combinedFileName}#${anchor}|${textLabel}]]`);
@@ -137,8 +137,8 @@ async function processInternalLinks(text: string): Promise<string> {
 			}
 			// Lien vers un bloc
 			if (blockIndicator && blockId) {
-				const anchor = '^' + blockId + '-comb';
-				if (embed.blocks.includes(blockId + '-comb')) {
+				const anchor = '^' + blockId.replace(/_/g, '-') + '-comb';
+				if (embed.blocks.includes(blockId.replace(/_/g, '-') + '-comb')) {
 					const textLabel = displayText || blockId;
 					processedText = processedText.replace(fullMatch, `[[${combinedFileName}#${anchor}|${textLabel}]]`);
 					continue;
@@ -333,8 +333,8 @@ function extractFigureContent(content: string): string {
 function suffixIdsForCombined(content: string): string {
 	// Suffixer les titres
 	content = content.replace(/^(#+)([^\n]*)/gm, (m: string, hashes: string, title: string) => `${hashes}${title}-comb`);
-	// Suffixer les blockid
-	content = content.replace(/\^(\w+)$/gm, (m: string, id: string) => `^${id}-comb`);
+	// Suffixer les blockid, en remplaçant les _ par des -
+	content = content.replace(/\^(\w+)$/gm, (m: string, id: string) => `^${id.replace(/_/g, '-')}-comb`);
 	return content;
 }
 

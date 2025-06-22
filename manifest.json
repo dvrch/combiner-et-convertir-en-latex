@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-markdown-combiner",
+  "id": "obsidian-combiner",
   "version": "1.0.0",
-  "name": "Obsidian Markdown Combiner",
-  "minAppVersion": "1.0.0",
-  "isDesktopOnly": false,
-  "description": "An Obsidian plugin to combine markdown files and their linked content into a single file.",
-  "author": "dvrch"
+  "name": "obsidian-combiner",
+  "description": "Combine and convert notes.",
+  "author": "",
+  "minAppVersion": "latest",
+  "isDesktopOnly": false
 }

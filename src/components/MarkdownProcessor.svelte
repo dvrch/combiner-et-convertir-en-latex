@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { App } from 'obsidian';
+	import type { PluginSettings } from '../settings';
 	
 	export let app: App;
 	export let basePath: string;
+	export let settings: PluginSettings;
 	export let config: any = null;
 	export let combinedFileName: string = '';
 	
@@ -84,7 +86,7 @@
 					recursivelyProcessed = await processAllLinks(recursivelyProcessed, linkedFile.parent?.path || '');
 					// Placer l'ancre de bloc markdown sur la même ligne que EMBED START
 					const blockAnchor = `^${noteName.replace(/_/g, '-')}`;
-					const startComment = `%% EMBED START: [[${noteName}]] %% ${blockAnchor}\n`;
+					const startComment = `%% EMBED START: [${noteName}] %% ${blockAnchor}\n`;
 					const endComment = `\n%% EMBED END: ${noteName} %%`;
 					processedText = processedText.replace(fullMatch, startComment + recursivelyProcessed + endComment);
 				} else {
@@ -100,15 +102,15 @@
 	}
 	
 	// Traitement des liens internes ([[note]])
+	// Nouvelle version de processInternalLinks : insertion du bloc caché juste avant la ligne du lien
 	async function processInternalLinks(text: string): Promise<string> {
 		const internalLinkRegex = /\[\[([^\]#|^/]+)(?:(#)([^\]|]+))?(?:(\^)([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
-		let processedText = text;
-
+		
 		// Découper le texte en lignes pour repérer les blocs de code
-		const lines = processedText.split('\n');
+		const lines = text.split('\n');
 		let inCodeBlock = false;
 		let codeBlockStart = -1;
-
+	
 		// Repérer les blocs de code (``` ou ~~~)
 		const codeBlockLines: {start: number, end: number}[] = [];
 		for (let i = 0; i < lines.length; i++) {
@@ -122,13 +124,26 @@
 				}
 			}
 		}
-
+	
 		// On va construire un nouveau tableau de lignes avec les blocs cachés insérés au bon endroit
 		let newLines: string[] = [];
 		for (let i = 0; i < lines.length; i++) {
 			let line = lines[i];
 			let match;
-			let insertedHidden = false;
+			
+			// Ne pas traiter les liens dans les blocs de code
+			let inBlock = false;
+			for (const block of codeBlockLines) {
+				if (i >= block.start && i <= block.end) {
+					inBlock = true;
+					break;
+				}
+			}
+			if (inBlock) {
+				newLines.push(line);
+				continue;
+			}
+
 			while ((match = internalLinkRegex.exec(line)) !== null) {
 				const fullMatch = match[0];
 				const noteName = match[1].trim();
@@ -137,12 +152,12 @@
 				const blockIndicator = match[4];
 				const blockId = match[5];
 				const displayText = match[6];
-
+	
 				// Si c'est une image, ne rien modifier
 				if (/\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i.test(noteName)) {
 					continue;
 				}
-
+	
 				const embed = embedAnchors[noteName.toLowerCase()];
 				if (embed) {
 					if (!sectionIndicator && !blockIndicator) {
@@ -168,7 +183,7 @@
 						}
 					}
 				}
-				if (!includedFiles.has(noteName.toLowerCase()) && !hiddenIncludedFiles.has(noteName.toLowerCase())) {
+				if (settings.useHiddenEmbeds && !includedFiles.has(noteName.toLowerCase()) && !hiddenIncludedFiles.has(noteName.toLowerCase())) {
 					try {
 						const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
 						if (linkedFile) {
@@ -177,10 +192,9 @@
 								linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
 							}
 							// Bloc isolé avec lignes vides avant et après
-							const commentBlock = `%% EMBED HIDDEN START: [[${noteName}]] \n${linkedContent}\nEMBED HIDDEN END %%`;
+							const commentBlock = `%%\n%% EMBED HIDDEN START: [[${noteName}]] %%\n${linkedContent}\n%% EMBED HIDDEN END %%\n%%`;
 							// Insérer le bloc caché juste avant la ligne courante
 							newLines.push(commentBlock);
-							insertedHidden = true;
 							hiddenIncludedFiles.add(noteName.toLowerCase());
 						}
 					} catch (err) {}
@@ -194,11 +208,8 @@
 					line = line.replace(fullMatch, `[[${noteName}|${textLabel}]]`);
 				}
 			}
-			// On ne veut insérer le bloc caché qu'une seule fois par ligne
-			// (SUPPRIME le break ici pour ne jamais sauter l'ajout de la ligne)
 			// reset regex lastIndex for next match in next line
 			internalLinkRegex.lastIndex = 0;
-			// (sinon boucle infinie sur la même ligne)
 			newLines.push(line);
 		}
 		return newLines.join('\n');
@@ -388,7 +399,7 @@
 		// Ne plus rien ajouter
 		return content;
 	}
-	
+
 	// Fonction utilitaire pour transformer les liens [[nom#^xxx]] en [[#^xxx]] si nom est inclus
 	function convertInternalBlockLinksToLocal(text: string): string {
 		// Regex : [[nom#^blockid]] ou [[nom#^blockid|texte]]
@@ -408,6 +419,9 @@
 	export async function processMarkdown(content: string): Promise<string> {
 		processingStatus = 'Traitement des liens...';
 		processedFiles.clear();
+		includedFiles.clear();
+		hiddenIncludedFiles.clear();
+		embedAnchors = {};
 		
 		try {
 			let result = await processAllLinks(content, basePath);
@@ -425,7 +439,10 @@
 	export function resetState(): void {
 		processedFiles.clear();
 		processingStatus = '';
+		includedFiles.clear();
+		hiddenIncludedFiles.clear();
+		embedAnchors = {};
 	}
-	</script>
-	
-	<!-- Ce composant n'a pas d'interface utilisateur, il est purement logique --> 
+</script>
+
+<!-- Ce composant n'a pas d'interface utilisateur, il est purement logique --> 

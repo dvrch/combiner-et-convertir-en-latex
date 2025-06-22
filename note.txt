@@ -72,3 +72,7 @@ dans un example comme  `Example: In [[test-vault/example_vault/📚Literature/p1
   > et l appel dans ce fichier devrait etre [[example_writing-1#^ad3b86comb]]| donc `example_writing-1` pour considerer le basculement vers le nouveau fichier dans lequel il se trouve.
   > cela dit, le auutre embeded qui pointaient sur fichier externe et dont le fichier externe est appelé dans le fichier combiné doivent desormais pointer  sur cette insertion dans le fichier combiné :
     - les pointage sur le fichiers amboité, par example >> `and [[table__block_long]]` dans le fichier combiné doit pointer sur son bloc dans le mem fichier, un trc comme >> `and [[example_writing-combined-1#^ref-bloc-indiqué|table__block_long]]`
+---------
+
+pour les fichier appelés sans etre affiché, l' insérer comme les autres, mais, au dessus du bloc dans lequel il est appelé et srtout dans les ballises de commentaire pour ne pas etre affiché.
+> a t on encore besoin de chemin long avec le nom du fichier alors que les references croisés son dans le document meme ?

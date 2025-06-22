@@ -188,12 +188,25 @@ async function processInternalLinks(text: string): Promise<string> {
 				try {
 					const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
 					if (linkedFile) {
+						// Si c'est une image, ne pas insérer le contenu binaire
+						if (/\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i.test(noteName)) {
+							const commentBlock = `\n%%\n%% EMBED HIDDEN: image: ${noteName} %%\n%% (image non insérée, voir le lien ![[${noteName}]] dans le texte) %%\n%%\n`;
+							let insertCharIndex = 0;
+							if (i === 0) { insertCharIndex = 0; }
+							else {
+								let sum = 0;
+								for (let j = 0; j < i; j++) sum += lines[j].length + 1;
+								insertCharIndex = sum;
+							}
+							insertions.push({index: insertCharIndex, content: commentBlock});
+							hiddenIncludedFiles.add(noteName.toLowerCase());
+							continue;
+						}
 						let linkedContent = await app.vault.read(linkedFile);
 						if (!linkedContent || linkedContent.trim() === '') {
 							linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
 						}
 						const commentBlock = `\n%%\n%% EMBED HIDDEN: ${noteName} %%\n${linkedContent}\n%% END EMBED HIDDEN %%\n%%\n`;
-						// Insérer avant la ligne, toujours isolé
 						let insertCharIndex = 0;
 						if (i === 0) { insertCharIndex = 0; }
 						else {

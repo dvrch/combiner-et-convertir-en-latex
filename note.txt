@@ -78,6 +78,7 @@ pour les fichier appelés sans etre affiché, l' insérer comme les autres, mais
 > a t on encore besoin de chemin long avec le nom du fichier alors que les references croisés son dans le document meme ?
 ----
 
+boutoon dans les seeting pour activer si on travaille avec  les HIDDEN ou non
 
 ----------------
-corriger et build
+corriger et build 

@@ -84,7 +84,7 @@
 					recursivelyProcessed = await processAllLinks(recursivelyProcessed, linkedFile.parent?.path || '');
 					// Placer l'ancre de bloc markdown sur la même ligne que EMBED START
 					const blockAnchor = `^${noteName.replace(/_/g, '-')}`;
-					const startComment = `%% EMBED START: [${noteName}] %% ${blockAnchor}\n`;
+					const startComment = `%% EMBED START: [[${noteName}]] %% ${blockAnchor}\n`;
 					const endComment = `\n%% EMBED END: ${noteName} %%`;
 					processedText = processedText.replace(fullMatch, startComment + recursivelyProcessed + endComment);
 				} else {
@@ -177,7 +177,7 @@
 								linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
 							}
 							// Bloc isolé avec lignes vides avant et après
-							const commentBlock = `%%\n%% EMBED HIDDEN START: [[${noteName}]] %%\n${linkedContent}\n%% EMBED HIDDEN END %%\n%%`;
+							const commentBlock = `%% EMBED HIDDEN START: [[${noteName}]] \n${linkedContent}\nEMBED HIDDEN END %%`;
 							// Insérer le bloc caché juste avant la ligne courante
 							newLines.push(commentBlock);
 							insertedHidden = true;
@@ -195,7 +195,7 @@
 				}
 			}
 			// On ne veut insérer le bloc caché qu'une seule fois par ligne
-			if (insertedHidden) break;
+			// (SUPPRIME le break ici pour ne jamais sauter l'ajout de la ligne)
 			// reset regex lastIndex for next match in next line
 			internalLinkRegex.lastIndex = 0;
 			// (sinon boucle infinie sur la même ligne)

@@ -103,14 +103,12 @@
 	async function processInternalLinks(text: string): Promise<string> {
 		const internalLinkRegex = /\[\[([^\]#|^/]+)(?:(#)([^\]|]+))?(?:(\^)([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
 		let processedText = text;
-		let match;
-		let insertions: {index: number, content: string}[] = [];
-	
+
 		// Découper le texte en lignes pour repérer les blocs de code
 		const lines = processedText.split('\n');
 		let inCodeBlock = false;
 		let codeBlockStart = -1;
-	
+
 		// Repérer les blocs de code (``` ou ~~~)
 		const codeBlockLines: {start: number, end: number}[] = [];
 		for (let i = 0; i < lines.length; i++) {
@@ -124,95 +122,86 @@
 				}
 			}
 		}
-	
-		while ((match = internalLinkRegex.exec(text)) !== null) {
-			const fullMatch = match[0];
-			const noteName = match[1].trim();
-			const sectionIndicator = match[2];
-			const sectionName = match[3];
-			const blockIndicator = match[4];
-			const blockId = match[5];
-			const displayText = match[6];
-	
-			// Si c'est une image, ne rien modifier
-			if (/\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i.test(noteName)) {
-				continue;
-			}
-	
-			const embed = embedAnchors[noteName.toLowerCase()];
-			if (embed) {
-				if (!sectionIndicator && !blockIndicator) {
-					const anchor = `^${noteName.replace(/_/g, '-')}`;
-					const textLabel = displayText || noteName;
-					processedText = processedText.replace(fullMatch, `[[#${anchor}|${textLabel}]]`);
+
+		// On va construire un nouveau tableau de lignes avec les blocs cachés insérés au bon endroit
+		let newLines: string[] = [];
+		for (let i = 0; i < lines.length; i++) {
+			let line = lines[i];
+			let match;
+			let insertedHidden = false;
+			while ((match = internalLinkRegex.exec(line)) !== null) {
+				const fullMatch = match[0];
+				const noteName = match[1].trim();
+				const sectionIndicator = match[2];
+				const sectionName = match[3];
+				const blockIndicator = match[4];
+				const blockId = match[5];
+				const displayText = match[6];
+
+				// Si c'est une image, ne rien modifier
+				if (/\.(png|jpg|jpeg|gif|svg|bmp|webp)$/i.test(noteName)) {
 					continue;
 				}
-				if (sectionIndicator && sectionName) {
-					const anchor = sectionName.replace(/_/g, '-').replace(/\s+/g, '-').toLowerCase();
-					if (embed.sections.includes(anchor)) {
-						const textLabel = displayText || sectionName;
-						processedText = processedText.replace(fullMatch, `[[#${anchor}|${textLabel}]]`);
+
+				const embed = embedAnchors[noteName.toLowerCase()];
+				if (embed) {
+					if (!sectionIndicator && !blockIndicator) {
+						const anchor = `^${noteName.replace(/_/g, '-')}`;
+						const textLabel = displayText || noteName;
+						line = line.replace(fullMatch, `[[#${anchor}|${textLabel}]]`);
 						continue;
 					}
-				}
-				if (blockIndicator && blockId) {
-					const anchor = '^' + blockId.replace(/_/g, '-');
-					if (embed.blocks.includes(blockId.replace(/_/g, '-'))) {
-						const textLabel = displayText || blockId;
-						processedText = processedText.replace(fullMatch, `[[#${anchor}|${textLabel}]]`);
-						continue;
+					if (sectionIndicator && sectionName) {
+						const anchor = sectionName.replace(/_/g, '-').replace(/\s+/g, '-').toLowerCase();
+						if (embed.sections.includes(anchor)) {
+							const textLabel = displayText || sectionName;
+							line = line.replace(fullMatch, `[[#${anchor}|${textLabel}]]`);
+							continue;
+						}
+					}
+					if (blockIndicator && blockId) {
+						const anchor = '^' + blockId.replace(/_/g, '-');
+						if (embed.blocks.includes(blockId.replace(/_/g, '-'))) {
+							const textLabel = displayText || blockId;
+							line = line.replace(fullMatch, `[[#${anchor}|${textLabel}]]`);
+							continue;
+						}
 					}
 				}
+				if (!includedFiles.has(noteName.toLowerCase()) && !hiddenIncludedFiles.has(noteName.toLowerCase())) {
+					try {
+						const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
+						if (linkedFile) {
+							let linkedContent = await app.vault.read(linkedFile);
+							if (!linkedContent || linkedContent.trim() === '') {
+								linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
+							}
+							// Bloc isolé avec lignes vides avant et après
+							const commentBlock = `%%\n%% EMBED HIDDEN START: [[${noteName}]] %%\n${linkedContent}\n%% EMBED HIDDEN END %%\n%%`;
+							// Insérer le bloc caché juste avant la ligne courante
+							newLines.push(commentBlock);
+							insertedHidden = true;
+							hiddenIncludedFiles.add(noteName.toLowerCase());
+						}
+					} catch (err) {}
+				}
+				const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
+				if (linkedFile && !linkedFile.path.startsWith('http') && !linkedFile.path.startsWith('/')) {
+					const textLabel = displayText || noteName;
+					line = line.replace(fullMatch, `[[${noteName}|${textLabel}]]`);
+				} else {
+					const textLabel = displayText || noteName;
+					line = line.replace(fullMatch, `[[${noteName}|${textLabel}]]`);
+				}
 			}
-			if (!includedFiles.has(noteName.toLowerCase()) && !hiddenIncludedFiles.has(noteName.toLowerCase())) {
-				try {
-					const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
-					if (linkedFile) {
-						let linkedContent = await app.vault.read(linkedFile);
-						if (!linkedContent || linkedContent.trim() === '') {
-							linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
-						}
-						// Bloc isolé avec lignes vides avant et après
-						const commentBlock = `\n%%\n%% EMBED HIDDEN START: [[${noteName}]] %%\n${linkedContent}\n%% EMBED HIDDEN END %%\n%%\n`;
-						// Trouver la ligne contenant le lien
-						let charIndex = match.index;
-						let lineIndex = 0, acc = 0;
-						for (let i = 0; i < lines.length; i++) {
-							if (acc + lines[i].length + 1 > charIndex) { lineIndex = i; break; }
-							acc += lines[i].length + 1;
-						}
-						// Vérifier si la ligne est dans un bloc de code
-						let inBlock = false;
-						for (const block of codeBlockLines) {
-							if (lineIndex >= block.start && lineIndex <= block.end) { inBlock = true; lineIndex = block.start; break; }
-						}
-						// Insérer avant le bloc de code ou la ligne, toujours isolé
-						let insertCharIndex = 0;
-						if (lineIndex === 0) { insertCharIndex = 0; }
-						else {
-							let sum = 0;
-							for (let i = 0; i < lineIndex; i++) sum += lines[i].length + 1;
-							insertCharIndex = sum;
-						}
-						insertions.push({index: insertCharIndex, content: commentBlock});
-						hiddenIncludedFiles.add(noteName.toLowerCase());
-					}
-				} catch (err) {}
-			}
-			const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
-			if (linkedFile && !linkedFile.path.startsWith('http') && !linkedFile.path.startsWith('/')) {
-				const textLabel = displayText || noteName;
-				processedText = processedText.replace(fullMatch, `[[${noteName}|${textLabel}]]`);
-			} else {
-				const textLabel = displayText || noteName;
-				processedText = processedText.replace(fullMatch, `[[${noteName}|${textLabel}]]`);
-			}
+			// On ne veut insérer le bloc caché qu'une seule fois par ligne
+			if (insertedHidden) break;
+			// reset regex lastIndex for next match in next line
+			internalLinkRegex.lastIndex = 0;
+			// (sinon boucle infinie sur la même ligne)
+			newLines.push(line);
 		}
-		insertions.sort((a, b) => b.index - a.index);
-		for (const ins of insertions) {
-			processedText = processedText.slice(0, ins.index) + ins.content + processedText.slice(ins.index);
-		}
-		return processedText;
+		return newLines.join('\n');
 	}
 	
 	// Traitement des images (![[image]])
@@ -400,13 +389,30 @@
 		return content;
 	}
 	
+	// Fonction utilitaire pour transformer les liens [[nom#^xxx]] en [[#^xxx]] si nom est inclus
+	function convertInternalBlockLinksToLocal(text: string): string {
+		// Regex : [[nom#^blockid]] ou [[nom#^blockid|texte]]
+		return text.replace(/\[\[([^\]#|^/]+)#\^([\w-]+)(?:\|([^\]]+))?\]\]/g, (match, noteName, blockId, displayText) => {
+			if (includedFiles.has(noteName.toLowerCase())) {
+				if (displayText) {
+					return `[[#^${blockId}|${displayText}]]`;
+				} else {
+					return `[[#^${blockId}]]`;
+				}
+			}
+			return match;
+		});
+	}
+	
 	// Méthode exposée pour traiter le contenu Markdown
 	export async function processMarkdown(content: string): Promise<string> {
 		processingStatus = 'Traitement des liens...';
 		processedFiles.clear();
 		
 		try {
-			const result = await processAllLinks(content, basePath);
+			let result = await processAllLinks(content, basePath);
+			// Conversion des liens de blocs internes en liens locaux si inclus
+			result = convertInternalBlockLinksToLocal(result);
 			processingStatus = 'Traitement terminé';
 			return result;
 		} catch (error) {

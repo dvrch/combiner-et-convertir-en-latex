@@ -76,3 +76,8 @@ dans un example comme  `Example: In [[test-vault/example_vault/📚Literature/p1
 
 pour les fichier appelés sans etre affiché, l' insérer comme les autres, mais, au dessus du bloc dans lequel il est appelé et srtout dans les ballises de commentaire pour ne pas etre affiché.
 > a t on encore besoin de chemin long avec le nom du fichier alors que les references croisés son dans le document meme ?
+----
+
+
+----------------
+corriger et build

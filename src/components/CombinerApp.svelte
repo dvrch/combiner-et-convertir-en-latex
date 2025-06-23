@@ -5,9 +5,8 @@
     import type { PluginSettings } from '../settings';
     import SplitView from './SplitView.svelte';
     import { getUniqueFileName } from '../markdown-combiner';
-    import { combinerState } from '../stores/combiner.store';
-    import { uiTexts, loadUiTexts } from '../stores/uiTexts.store';
-    import { get } from 'svelte/store';
+    import { getCombinerState, setOriginal, setCombined } from '../stores/combiner.store';
+    import { getUiTexts, loadUiTexts } from '../stores/uiTexts.store';
 
     export let app: App;
     export let settings: PluginSettings;
@@ -19,13 +18,12 @@
     let markdownProcessor: MarkdownProcessor;
     let mainFileContent: string = '';
     let saveMessage = '';
-    let texts = get(uiTexts);
-    $: uiTexts.subscribe(val => texts = val);
-    let state = get(combinerState);
-    $: combinerState.subscribe(val => state = val);
+    let texts = getUiTexts();
+    let state = getCombinerState();
 
     onMount(() => {
         loadUiTexts();
+        texts = getUiTexts();
     });
 
     async function handleCombine() {
@@ -35,6 +33,9 @@
             if (activeFile) {
                 const content = await app.vault.read(activeFile);
                 combinedContent = await markdownProcessor.processMarkdown(content);
+                setOriginal(content);
+                setCombined(combinedContent);
+                state = getCombinerState();
             }
         }
     }

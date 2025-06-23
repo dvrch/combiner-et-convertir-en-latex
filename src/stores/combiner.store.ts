@@ -1,14 +1,22 @@
-import { writable } from 'svelte/store';
+// Store simplifié sans réactivité Svelte
+export interface CombinerState {
+  original: string;
+  combined: string;
+}
 
-export const combinerState = writable({
+let combinerState: CombinerState = {
   original: '',
   combined: '',
-});
+};
+
+export function getCombinerState(): CombinerState {
+  return { ...combinerState };
+}
 
 export function setOriginal(content: string) {
-  combinerState.update(state => ({ ...state, original: content }));
+  combinerState = { ...combinerState, original: content };
 }
 
 export function setCombined(content: string) {
-  combinerState.update(state => ({ ...state, combined: content }));
+  combinerState = { ...combinerState, combined: content };
 } 

@@ -1,10 +1,8 @@
 <script lang="ts">
-  import { uiTexts } from '../stores/uiTexts.store';
-  import { get } from 'svelte/store';
+  import { getUiTexts } from '../stores/uiTexts.store';
   export let original: string = '';
   export let combined: string = '';
-  let texts = get(uiTexts);
-  $: uiTexts.subscribe(val => texts = val);
+  let texts = getUiTexts();
 </script>
 
 <style>
@@ -30,11 +28,11 @@
 
 <div class="split-view">
   <div class="pane">
-    <div class="pane-title">{texts.splitview?.original || 'Original'}</div>
+    <div class="pane-title">{texts['splitview.original'] || 'Original'}</div>
     <pre>{original}</pre>
   </div>
   <div class="pane">
-    <div class="pane-title">{texts.splitview?.combined || 'Combiné'}</div>
+    <div class="pane-title">{texts['splitview.combined'] || 'Combiné'}</div>
     <pre>{combined}</pre>
   </div>
 </div> 

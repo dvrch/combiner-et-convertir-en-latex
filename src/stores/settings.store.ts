@@ -1,18 +1,25 @@
-import { writable, get } from 'svelte/store';
+// Store simplifié sans réactivité Svelte
+export interface Settings {
+  useHiddenEmbeds: boolean;
+}
 
-export const settings = writable({
+let settings: Settings = {
   useHiddenEmbeds: true,
-});
+};
+
+export function getSettings(): Settings {
+  return { ...settings };
+}
 
 export function setSetting(key: string, value: any) {
-  settings.update(s => ({ ...s, [key]: value }));
+  settings = { ...settings, [key]: value };
 }
 
 export async function loadSettingsFromPlugin(plugin: any) {
   const data = await plugin.loadData();
-  if (data) settings.set(data);
+  if (data) settings = { ...settings, ...data };
 }
 
 export async function saveSettingsToPlugin(plugin: any) {
-  await plugin.saveData(get(settings));
+  await plugin.saveData(settings);
 } 

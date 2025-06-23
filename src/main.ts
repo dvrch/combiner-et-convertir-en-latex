@@ -1,7 +1,6 @@
 import { App, Plugin, PluginSettingTab, Setting, Notice } from 'obsidian';
 import CombinerApp from './components/CombinerApp.svelte';
-import { settings, loadSettingsFromPlugin, saveSettingsToPlugin } from './stores/settings.store';
-import { get } from 'svelte/store';
+import { getSettings, setSetting, loadSettingsFromPlugin, saveSettingsToPlugin } from './stores/settings.store';
 import { combineMarkdownNote } from './markdown-combiner';
 
 export default class MyPlugin extends Plugin {
@@ -34,7 +33,8 @@ export default class MyPlugin extends Plugin {
                     new Notice('Aucun fichier actif.');
                     return;
                 }
-                const combined = await combineMarkdownNote(this.app, activeFile, get(settings));
+                const settings = getSettings();
+                const combined = await combineMarkdownNote(this.app, activeFile, settings);
                 const parent = activeFile.parent;
                 const newName = activeFile.basename + '-combined.md';
                 await this.app.vault.create(parent ? parent.path + '/' + newName : newName, combined);
@@ -54,7 +54,8 @@ export default class MyPlugin extends Plugin {
                     return;
                 }
                 const { combineMarkdownNote } = await import('./markdown-combiner');
-                const combined = await combineMarkdownNote(this.app, activeFile, get(settings));
+                const settings = getSettings();
+                const combined = await combineMarkdownNote(this.app, activeFile, settings);
                 const parent = activeFile.parent;
                 const newName = activeFile.basename + '-combined.md';
                 await this.app.vault.create(parent ? parent.path + '/' + newName : newName, combined);
@@ -85,9 +86,10 @@ export default class MyPlugin extends Plugin {
                 } else {
                     container.innerHTML = '';
                 }
+                const settings = getSettings();
                 new CombinerApp({
                     target: container,
-                    props: { app: this.app, settings: get(settings) }
+                    props: { app: this.app, settings }
                 });
             }
         });
@@ -103,11 +105,12 @@ export default class MyPlugin extends Plugin {
     activateView() {
         const container = this.app.workspace.getRightLeaf(false);
         if (container && container.view.containerEl.children[1]) {
+            const settings = getSettings();
             this.view = new CombinerApp({
                 target: container.view.containerEl.children[1],
                 props: {
                     app: this.app,
-                    settings: get(settings)
+                    settings
                 }
             });
             this.app.workspace.revealLeaf(container);
@@ -138,13 +141,14 @@ class SampleSettingTab extends PluginSettingTab {
 
         containerEl.createEl('h2', { text: 'Settings for Combiner Plugin.' });
 
+        const settings = getSettings();
         new Setting(containerEl)
             .setName('Use Hidden Embeds')
             .setDesc('If enabled, internal links to notes not already embedded will be added as hidden comment blocks.')
             .addToggle(toggle => toggle
-                .setValue(get(settings).useHiddenEmbeds)
+                .setValue(settings.useHiddenEmbeds)
                 .onChange(async (value) => {
-                    settings.update(s => ({ ...s, useHiddenEmbeds: value }));
+                    setSetting('useHiddenEmbeds', value);
                     await this.plugin.saveSettings();
                 }));
     }

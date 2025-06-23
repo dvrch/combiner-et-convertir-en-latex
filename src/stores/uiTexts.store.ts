@@ -1,15 +1,18 @@
-import { writable } from 'svelte/store';
 import yaml from 'js-yaml';
 
-export const uiTexts = writable<Record<string, string>>({});
+let uiTexts: Record<string, string> = {};
+
+export function getUiTexts(): Record<string, string> {
+  return { ...uiTexts };
+}
 
 export async function loadUiTexts(path = 'locales/fr.yaml') {
   try {
     const response = await fetch(path);
     const yamlText = await response.text();
     const data = yaml.load(yamlText) as Record<string, string>;
-    uiTexts.set(data);
+    uiTexts = { ...data };
   } catch (e) {
-    uiTexts.set({ error: 'Erreur de chargement des textes UI.' });
+    uiTexts = { error: 'Erreur de chargement des textes UI.' };
   }
 } 

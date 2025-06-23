@@ -1,3 +1,5 @@
+// ARCHIVÉ : Les paramètres sont désormais gérés dans src/stores/settings.store.ts (store Svelte)
+
 export interface PluginSettings {
     useHiddenEmbeds: boolean;
 }

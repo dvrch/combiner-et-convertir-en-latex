@@ -1,7 +1,8 @@
-import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, Notice } from 'obsidian';
 import CombinerApp from './components/CombinerApp.svelte';
 import type { PluginSettings } from './settings';
 import { DEFAULT_SETTINGS } from './settings';
+import { combineMarkdownNote } from './markdown-combiner';
 
 export default class MyPlugin extends Plugin {
     settings: PluginSettings = DEFAULT_SETTINGS;
@@ -22,6 +23,24 @@ export default class MyPlugin extends Plugin {
             callback: () => {
                 this.activateView();
             },
+        });
+
+        // Nouvelle commande : combiner la note active et créer un fichier combiné
+        this.addCommand({
+            id: 'combine-active-note-to-file',
+            name: 'Combiner la note active (fichier)',
+            callback: async () => {
+                const activeFile = this.app.workspace.getActiveFile();
+                if (!activeFile) {
+                    new Notice('Aucun fichier actif.');
+                    return;
+                }
+                const combined = await combineMarkdownNote(this.app, activeFile, this.settings);
+                const parent = activeFile.parent;
+                const newName = activeFile.basename + '-combined.md';
+                await this.app.vault.create(parent ? parent.path + '/' + newName : newName, combined);
+                new Notice('Fichier combiné créé : ' + newName);
+            }
         });
     }
 

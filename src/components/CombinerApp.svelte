@@ -7,6 +7,7 @@
     import { getUniqueFileName } from '../markdown-combiner';
     import { getCombinerState, setOriginal, setCombined } from '../stores/combiner.store';
     import { getUiTexts, loadUiTexts } from '../stores/uiTexts.store';
+    import CombinerManualUI from './CombinerManualUI.svelte';
 
     export let app: App;
     export let settings: PluginSettings;
@@ -20,6 +21,7 @@
     let saveMessage = '';
     let texts = getUiTexts();
     let state = getCombinerState();
+    let showManualUI = false;
 
     onMount(() => {
         loadUiTexts();
@@ -50,6 +52,13 @@
 
 <div class="combiner-app">
     <h1>Markdown Combiner</h1>
+
+    <button on:click={() => showManualUI = !showManualUI} style="margin-bottom:1rem;">
+        {showManualUI ? 'Fermer la combinaison manuelle' : 'Combinaison manuelle avancée'}
+    </button>
+    {#if showManualUI}
+        <CombinerManualUI {app} />
+    {/if}
 
     <MarkdownProcessor 
         bind:this={markdownProcessor} 

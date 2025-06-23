@@ -31,7 +31,8 @@ tu te souvien bien que c est un plugin obsidian qu on consstruit ici ?
 
 ----------
 le dossier test se trouve normalement dans  le vault  et pas danṡplugin .
-c est li icic @/test-vault | le dossier du plugin c est @/combiner et convertir en latex 
+c est li icic @/test-vault 
+ le dossier du plugin c est @/combiner et convertir en latex 
 --------------
 si le mom du combiné existe deja, ajouter un numéro devant
 --------------
@@ -83,6 +84,16 @@ boutoon dans les seeting pour activer si on travaille avec  les HIDDEN ou non
  (genre facile de connecter api ou donné a partir de Yaml structuré) l. leṡcommandes par example dans un yaml que un utilisteur lambda eut editer sans rentrer dnas le code ; les textes quui doivent servir a l'interface, pour   etre traduit facilement par un utilisateur lambda
 -------
  ajouter un chiffre si le fichier exite deja pour distinguer | splite l espace pour affficher la nouvelle note combiné a droit pour voir les 2 cote a cote
-------
-c----------------
+------ UI
+té de l autre apres la combinaison  dan sl onglet a droite
+> liste des commandes dans un yaml 
+> ui pour combinaison manuel >> responsive| taille resonable // a la fenetre
+
+ champs dan slequel on  peut glisser-disposer des fichiers et arranger l'ordre au besoin, et combiner un un seul fichier
+ donc glisser-deposer depuis obsidian ou extrieur>>, arrager l ordre si +sieiur fichiers 
+ et combiner comme d abitude, avec les amboité si inclus
+  survol du bouton de coversion fait apparaitre le converti 
+ un champs avvec nom par defaut avec possibilité d'dition
+
+----------------
 corriger et build 

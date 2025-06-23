@@ -1,7 +1,23 @@
-import { App, Plugin, PluginSettingTab, Setting, Notice } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, Notice, TFile } from 'obsidian';
 import CombinerApp from './components/CombinerApp.svelte';
 import { getSettings, setSetting, loadSettingsFromPlugin, saveSettingsToPlugin } from './stores/settings.store';
-import { combineMarkdownNote } from './markdown-combiner';
+import { combineMarkdownNote, getUniqueFileName } from './markdown-combiner';
+
+async function createAndOpenCombinedFile(app: App, baseFile: TFile, combinedContent: string) {
+    const parent = baseFile.parent;
+    const baseName = baseFile.basename + '-combined.md';
+    const existsFn = async (name: string) => {
+        const path = parent ? parent.path + '/' + name : name;
+        return !!app.vault.getAbstractFileByPath(path);
+    };
+    const uniqueName = await getUniqueFileName(baseName, existsFn);
+    const filePath = parent ? parent.path + '/' + uniqueName : uniqueName;
+    const newFile = await app.vault.create(filePath, combinedContent);
+    // Ouvre dans un nouveau pane à droite
+    const leaf = app.workspace.getLeaf('split', 'vertical');
+    await leaf.openFile(newFile);
+    app.workspace.trigger('notice', 'Fichier combiné créé et ouvert : ' + uniqueName);
+}
 
 export default class MyPlugin extends Plugin {
     private view!: CombinerApp;
@@ -23,7 +39,7 @@ export default class MyPlugin extends Plugin {
             },
         });
 
-        // Nouvelle commande : combiner la note active et créer un fichier combiné
+        // Commande : combiner la note active et créer un fichier combiné (toujours unique, ouverture à droite)
         this.addCommand({
             id: 'combine-active-note-to-file',
             name: 'Combiner la note active (fichier)',
@@ -35,14 +51,11 @@ export default class MyPlugin extends Plugin {
                 }
                 const settings = getSettings();
                 const combined = await combineMarkdownNote(this.app, activeFile, settings);
-                const parent = activeFile.parent;
-                const newName = activeFile.basename + '-combined.md';
-                await this.app.vault.create(parent ? parent.path + '/' + newName : newName, combined);
-                new Notice('Fichier combiné créé : ' + newName);
+                await createAndOpenCombinedFile(this.app, activeFile, combined);
             }
         });
 
-        // Commande 1 : Combiner la note active directement (sans UI)
+        // Commande : Combiner la note active directement (sans UI, ouverture à droite)
         this.addCommand({
             id: 'combine-active-note-direct',
             name: 'Combiner la note active (direct)',
@@ -56,14 +69,11 @@ export default class MyPlugin extends Plugin {
                 const { combineMarkdownNote } = await import('./markdown-combiner');
                 const settings = getSettings();
                 const combined = await combineMarkdownNote(this.app, activeFile, settings);
-                const parent = activeFile.parent;
-                const newName = activeFile.basename + '-combined.md';
-                await this.app.vault.create(parent ? parent.path + '/' + newName : newName, combined);
-                this.app.workspace.trigger('notice', 'Fichier combiné créé : ' + newName);
+                await createAndOpenCombinedFile(this.app, activeFile, combined);
             }
         });
 
-        // Commande 2 : Ouvrir la fenêtre flottante pour sélection manuelle
+        // Commande : Ouvrir la fenêtre flottante pour sélection manuelle
         this.addCommand({
             id: 'open-combiner-dom',
             name: 'Ouvrir le combiner (sélection manuelle)',

@@ -1,0 +1,13 @@
+# Liste des commandes du plugin obsidian-combiner
+- id: open-combiner-view
+  name: Ouvrir le combiner
+  description: Ouvre l'interface de combinaison manuelle
+- id: combine-active-note-direct
+  name: Combiner la note active (direct)
+  description: Combine la note active et ouvre le résultat à droite
+- id: combine-active-note-to-file
+  name: Combiner la note active (fichier)
+  description: Combine la note active, crée un fichier et l'ouvre à droite
+- id: open-combiner-dom
+  name: Ouvrir le combiner (sélection manuelle)
+  description: Ouvre la fenêtre flottante pour la combinaison manuelle

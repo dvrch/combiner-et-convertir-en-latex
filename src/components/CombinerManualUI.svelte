@@ -11,6 +11,9 @@ let combinedName: string = 'notes-combinees.md';
 let previewContent: string = '';
 let showPreview = false;
 let commands: any[] = [];
+let search = '';
+let searchResults: TFile[] = [];
+let draggingIdx: number|null = null;
 
 onMount(async () => {
     await loadCommands();
@@ -24,19 +27,16 @@ function handleDrop(event: DragEvent) {
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
         if (item.kind === 'file') {
-            // Fichier externe
             const file = item.getAsFile();
             if (file && file.name.endsWith('.md')) {
-                // On ne peut pas lire le contenu externe ici, mais on peut afficher le nom
                 fileNames.push(file.name);
             }
         } else if (item.kind === 'string') {
-            // Drag depuis Obsidian : on tente de récupérer le chemin
             item.getAsString(async (path) => {
                 const tfile = app.vault.getAbstractFileByPath(path) as TAbstractFile;
-                // Vérification manuelle des propriétés d'un TFile
                 if (tfile && 'extension' in tfile && (tfile as any).extension === 'md') {
-                    files.push(tfile as TFile);
+                    if (!files.find(f => f.path === (tfile as TFile).path))
+                        files.push(tfile as TFile);
                 }
             });
         }
@@ -48,6 +48,7 @@ function handleDragOver(event: DragEvent) {
 }
 
 function moveFile(from: number, to: number) {
+    if (from === to) return;
     const f = files.splice(from, 1)[0];
     files.splice(to, 0, f);
 }
@@ -56,8 +57,20 @@ function removeFile(idx: number) {
     files.splice(idx, 1);
 }
 
+function onDragStart(idx: number) {
+    draggingIdx = idx;
+}
+function onDragEnd() {
+    draggingIdx = null;
+}
+function onDropOnItem(idx: number) {
+    if (draggingIdx !== null && draggingIdx !== idx) {
+        moveFile(draggingIdx, idx);
+        draggingIdx = null;
+    }
+}
+
 async function handlePreview() {
-    // Pour la démo, concatène le contenu des fichiers
     previewContent = '';
     for (const f of files) {
         const content = await app.vault.read(f);
@@ -68,6 +81,22 @@ async function handlePreview() {
 
 function closePreview() {
     showPreview = false;
+}
+
+function handleSearch() {
+    if (!search.trim()) {
+        searchResults = [];
+        return;
+    }
+    // Recherche simple dans tous les fichiers markdown du vault
+    const allFiles = app.vault.getMarkdownFiles();
+    searchResults = allFiles.filter(f => f.name.toLowerCase().includes(search.trim().toLowerCase()) && !files.find(ff => ff.path === f.path));
+}
+
+function addSearchedFile(f: TFile) {
+    files.push(f);
+    search = '';
+    searchResults = [];
 }
 </script>
 
@@ -95,6 +124,10 @@ function closePreview() {
     border-radius: 4px;
     padding: 0.5rem;
     cursor: grab;
+    user-select: none;
+}
+.file-item.dragging {
+    opacity: 0.5;
 }
 .file-item .remove {
     margin-left: auto;
@@ -134,6 +167,10 @@ function closePreview() {
     .manual-ui { max-width: 98vw; padding: 0.5rem; }
     .preview-modal { max-width: 98vw; padding: 1rem; }
 }
+.search-field { margin-bottom: 1rem; }
+.search-results { background: #fff; border: 1px solid #ccc; border-radius: 4px; max-height: 120px; overflow-y: auto; }
+.search-results div { padding: 0.3rem 0.7rem; cursor: pointer; }
+.search-results div:hover { background: #eee; }
 </style>
 
 <div class="manual-ui">
@@ -141,9 +178,25 @@ function closePreview() {
     <div class="drag-area" on:drop={handleDrop} on:dragover={handleDragOver}>
         Glisser-déposer des fichiers markdown ici (depuis Obsidian ou l'extérieur)
     </div>
+    <div class="search-field">
+        <input type="text" placeholder="Rechercher un fichier dans le vault..." bind:value={search} on:input={handleSearch} />
+        {#if searchResults.length > 0}
+            <div class="search-results">
+                {#each searchResults as f}
+                    <div on:click={() => addSearchedFile(f)}>{f.name}</div>
+                {/each}
+            </div>
+        {/if}
+    </div>
     <div class="file-list">
         {#each files as file, idx}
-            <div class="file-item" draggable="true">
+            <div class="file-item {draggingIdx === idx ? 'dragging' : ''}"
+                draggable="true"
+                on:dragstart={() => onDragStart(idx)}
+                on:dragend={onDragEnd}
+                on:drop={() => onDropOnItem(idx)}
+                on:dragover|preventDefault
+            >
                 <span>{file.name}</span>
                 <span class="remove" on:click={() => removeFile(idx)}>✖</span>
                 {#if idx > 0}

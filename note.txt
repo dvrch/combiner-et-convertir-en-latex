@@ -94,6 +94,8 @@ té de l autre apres la combinaison  dan sl onglet a droite
  et combiner comme d abitude, avec les amboité si inclus
   survol du bouton de coversion fait apparaitre le converti 
  un champs avvec nom par defaut avec possibilité d'dition
+ > j ai l immpression que clique-glisser ne marche pas.
+  il y devait avoir un chammps ou les sont listés progressivement les fichiers ajoutés avec possibilitéé de modifier l ordre ; et une petitee croix pour dupprimmer | possibilité d ajout via un champs de recherche sur les fichier du vault
 
 ----------------
 corriger et build 

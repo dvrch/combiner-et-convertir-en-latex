@@ -88,7 +88,7 @@
 					const blockAnchor = `^${noteName.replace(/_/g, '-')}`;
 					const startComment = `%% EMBED START: [${noteName}] %% ${blockAnchor}\n`;
 					const endComment = `\n%% EMBED END: ${noteName} %%`;
-					processedText = processedText.replace(fullMatch, startComment + recursivelyProcessed + endComment);
+					processedText = processedText.replace(fullMatch, `\n${startComment}${recursivelyProcessed}${endComment}`);
 				} else {
 					processedText = processedText.replace(fullMatch, `![[${noteName}]]`);
 				}

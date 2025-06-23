@@ -1,10 +1,11 @@
 import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import CombinerApp from './components/CombinerApp.svelte';
-import { PluginSettings, DEFAULT_SETTINGS } from './settings';
+import type { PluginSettings } from './settings';
+import { DEFAULT_SETTINGS } from './settings';
 
 export default class MyPlugin extends Plugin {
-    settings: PluginSettings;
-    private view: CombinerApp;
+    settings: PluginSettings = DEFAULT_SETTINGS;
+    private view!: CombinerApp;
 
     async onload() {
         await this.loadSettings();
@@ -36,14 +37,16 @@ export default class MyPlugin extends Plugin {
         // You might need a more complex implementation depending on your needs,
         // possibly involving a custom View class that hosts the Svelte component.
         const container = this.app.workspace.getRightLeaf(false);
-        this.view = new CombinerApp({
-            target: container.view.containerEl.children[1],
-            props: {
-                app: this.app,
-                settings: this.settings
-            }
-        });
-        this.app.workspace.revealLeaf(container);
+        if (container && container.view.containerEl.children[1]) {
+            this.view = new CombinerApp({
+                target: container.view.containerEl.children[1],
+                props: {
+                    app: this.app,
+                    settings: this.settings
+                }
+            });
+            this.app.workspace.revealLeaf(container);
+        }
     }
 
     async loadSettings() {

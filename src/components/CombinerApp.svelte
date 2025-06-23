@@ -26,7 +26,14 @@
 <div class="combiner-app">
     <h1>Markdown Combiner</h1>
 
-    <MarkdownProcessor bind:this={markdownProcessor} {app} {settings} basePath={app.vault.adapter.getBasePath()} />
+    <MarkdownProcessor 
+        bind:this={markdownProcessor} 
+        {app} 
+        {settings} 
+        basePath="" 
+        config={null}
+        combinedFileName=""
+    />
 
     <button on:click={handleCombine}>Combine Active Note</button>
 

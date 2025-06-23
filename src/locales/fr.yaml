@@ -1,0 +1,7 @@
+# Textes UI pour le plugin (français)
+splitview:
+  original: "Original"
+  combined: "Combiné"
+save_button: "💾 Sauvegarder le combiné"
+save_success: "Fichier sauvegardé sous :"
+error_loading: "Erreur de chargement des textes UI."

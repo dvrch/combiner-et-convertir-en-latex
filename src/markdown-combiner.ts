@@ -142,7 +142,7 @@ export async function combineMarkdownNote(app: App, file: TFile, settings: Plugi
                             if (!linkedContent || linkedContent.trim() === '') {
                                 linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
                             }
-                            const commentBlock = `%%\n%% EMBED HIDDEN START: [[${noteName}]] %%\n${linkedContent}\n%% EMBED HIDDEN END %%\n%%`;
+                            const commentBlock = `%%EMBED HIDDEN START: [[${noteName}]] \n${linkedContent}\nEMBED HIDDEN END %%`;
                             newLines.push(commentBlock);
                             hiddenIncludedFiles.add(noteName.toLowerCase());
                         }
@@ -231,4 +231,22 @@ export async function combineMarkdownNote(app: App, file: TFile, settings: Plugi
     let result = await processAllLinks(content, file.parent?.path || '');
     result = convertInternalBlockLinksToLocal(result);
     return result;
+}
+
+/**
+ * Génère un nom de fichier unique en ajoutant (1), (2), ... si besoin.
+ * @param baseName Nom de base (ex: note.md)
+ * @param existsFn Fonction asynchrone qui vérifie si le fichier existe
+ */
+export async function getUniqueFileName(baseName: string, existsFn: (name: string) => Promise<boolean>): Promise<string> {
+    const extIndex = baseName.lastIndexOf('.')
+    const name = extIndex !== -1 ? baseName.slice(0, extIndex) : baseName
+    const ext = extIndex !== -1 ? baseName.slice(extIndex) : ''
+    let candidate = baseName
+    let i = 1
+    while (await existsFn(candidate)) {
+        candidate = `${name} (${i})${ext}`
+        i++
+    }
+    return candidate
 } 

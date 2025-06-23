@@ -104,7 +104,8 @@
 	// Traitement des liens internes ([[note]])
 	// Nouvelle version de processInternalLinks : insertion du bloc caché juste avant la ligne du lien
 	async function processInternalLinks(text: string): Promise<string> {
-		const internalLinkRegex = /\[\[([^\]#|^/]+)(?:(#)([^\]|]+))?(?:(\^)([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
+		// Regex modifiée pour ne pas matcher les liens qui commencent déjà par [[#
+		const internalLinkRegex = /\[\[(?!\#)([^\]#|^/]+)(?:(#)([^\]|]+))?(?:(\^)([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
 		
 		// Découper le texte en lignes pour repérer les blocs de code
 		const lines = text.split('\n');
@@ -269,9 +270,37 @@
 		return text;
 	}
 	
+	// Fonction pour préserver les blocs mathématiques
+	function preserveMathBlocks(text: string): { text: string, mathBlocks: string[] } {
+		const mathBlocks: string[] = [];
+		let blockCounter = 0;
+		
+		// Remplacer les blocs $$ par des placeholders
+		const preservedText = text.replace(/\$\$([\s\S]*?)\$\$/g, (match, content) => {
+			const placeholder = `__MATH_BLOCK_${blockCounter}__`;
+			mathBlocks[blockCounter] = match;
+			blockCounter++;
+			return placeholder;
+		});
+		
+		return { text: preservedText, mathBlocks };
+	}
+	
+	// Fonction pour restaurer les blocs mathématiques
+	function restoreMathBlocks(text: string, mathBlocks: string[]): string {
+		let restoredText = text;
+		mathBlocks.forEach((block, index) => {
+			restoredText = restoredText.replace(`__MATH_BLOCK_${index}__`, block);
+		});
+		return restoredText;
+	}
+	
 	// Fonction principale qui traite tous les types de liens
 	async function processAllLinks(text: string, currentPath: string): Promise<string> {
-		let processedText = text;
+		// Préserver les blocs mathématiques
+		const { text: preservedText, mathBlocks } = preserveMathBlocks(text);
+		
+		let processedText = preservedText;
 		
 		// Traitement dans l'ordre : embarqués, internes, images, externes
 		processedText = await processEmbeddedLinks(processedText);
@@ -279,7 +308,8 @@
 		processedText = await processImages(processedText);
 		processedText = processExternalLinks(processedText);
 		
-		return processedText;
+		// Restaurer les blocs mathématiques
+		return restoreMathBlocks(processedText, mathBlocks);
 	}
 	
 	// Fonction pour calculer le chemin relatif entre deux fichiers

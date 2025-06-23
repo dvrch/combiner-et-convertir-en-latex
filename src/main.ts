@@ -54,9 +54,8 @@ export default class MyPlugin extends Plugin {
                     this.app.workspace.trigger('notice', 'Aucune note active');
                     return;
                 }
-                // Import dynamique pour éviter les problèmes de dépendance circulaire
-                const { combineMarkdownNote } = await import('./combineMarkdownNote');
-                const combined = await combineMarkdownNote(this.app, activeFile);
+                const { combineMarkdownNote } = await import('./markdown-combiner');
+                const combined = await combineMarkdownNote(this.app, activeFile, this.settings);
                 const parent = activeFile.parent;
                 const newName = activeFile.basename + '-combined.md';
                 await this.app.vault.create(parent ? parent.path + '/' + newName : newName, combined);

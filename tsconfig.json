@@ -24,6 +24,7 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "ignoreDeprecations": "5.0",
     "verbatimModuleSyntax": true
   },
   "include": [

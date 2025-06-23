@@ -192,7 +192,7 @@
 								linkedContent = `<!-- Contenu vide ou non trouvé pour '${noteName}' -->`;
 							}
 							// Bloc isolé avec lignes vides avant et après
-							const commentBlock = `%%\n%% EMBED HIDDEN START: [[${noteName}]] %%\n${linkedContent}\n%% EMBED HIDDEN END %%\n%%`;
+							const commentBlock = `%%EMBED HIDDEN START: [[${noteName}]] \n${linkedContent}\nEMBED HIDDEN END %%`;
 							// Insérer le bloc caché juste avant la ligne courante
 							newLines.push(commentBlock);
 							hiddenIncludedFiles.add(noteName.toLowerCase());

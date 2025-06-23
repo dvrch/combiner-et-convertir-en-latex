@@ -79,6 +79,10 @@ pour les fichier appelés sans etre affiché, l' insérer comme les autres, mais
 ----
 
 boutoon dans les seeting pour activer si on travaille avec  les HIDDEN ou non
-
-----------------
+--------
+ (genre facile de connecter api ou donné a partir de Yaml structuré) l. leṡcommandes par example dans un yaml que un utilisteur lambda eut editer sans rentrer dnas le code ; les textes quui doivent servir a l'interface, pour   etre traduit facilement par un utilisateur lambda
+-------
+ ajouter un chiffre si le fichier exite deja pour distinguer | splite l espace pour affficher la nouvelle note combiné a droit pour voir les 2 cote a cote
+------
+c----------------
 corriger et build 

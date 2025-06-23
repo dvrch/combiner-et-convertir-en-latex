@@ -42,6 +42,57 @@ export default class MyPlugin extends Plugin {
                 new Notice('Fichier combiné créé : ' + newName);
             }
         });
+
+        // Commande 1 : Combiner la note active directement (sans UI)
+        this.addCommand({
+            id: 'combine-active-note-direct',
+            name: 'Combiner la note active (direct)',
+            icon: 'combiner',
+            callback: async () => {
+                const activeFile = this.app.workspace.getActiveFile();
+                if (!activeFile) {
+                    this.app.workspace.trigger('notice', 'Aucune note active');
+                    return;
+                }
+                // Import dynamique pour éviter les problèmes de dépendance circulaire
+                const { combineMarkdownNote } = await import('./combineMarkdownNote');
+                const combined = await combineMarkdownNote(this.app, activeFile);
+                const parent = activeFile.parent;
+                const newName = activeFile.basename + '-combined.md';
+                await this.app.vault.create(parent ? parent.path + '/' + newName : newName, combined);
+                this.app.workspace.trigger('notice', 'Fichier combiné créé : ' + newName);
+            }
+        });
+
+        // Commande 2 : Ouvrir la fenêtre flottante pour sélection manuelle
+        this.addCommand({
+            id: 'open-combiner-dom',
+            name: 'Ouvrir le combiner (sélection manuelle)',
+            callback: () => {
+                let container = document.getElementById('combiner-debug-root');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'combiner-debug-root';
+                    container.style.position = 'fixed';
+                    container.style.top = '60px';
+                    container.style.right = '20px';
+                    container.style.zIndex = '9999';
+                    container.style.background = 'var(--background-primary)';
+                    container.style.border = '1px solid var(--background-modifier-border)';
+                    container.style.borderRadius = '8px';
+                    container.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+                    container.style.padding = '1rem';
+                    container.style.maxWidth = '400px';
+                    document.body.appendChild(container);
+                } else {
+                    container.innerHTML = '';
+                }
+                new CombinerApp({
+                    target: container,
+                    props: { app: this.app }
+                });
+            }
+        });
     }
 
     async onunload() {
@@ -102,4 +153,4 @@ class SampleSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
     }
-} 
+}  

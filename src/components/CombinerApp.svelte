@@ -1,43 +1,46 @@
-<script lang="ts">
-    import { App } from 'obsidian';
+<script>
     import { onMount } from 'svelte';
     import MarkdownProcessor from './MarkdownProcessor.svelte';
-    import type { PluginSettings } from '../settings';
     import SplitView from './SplitView.svelte';
-    import { getUniqueFileName } from '../markdown-combiner';
-    import { getCombinerState, setOriginal, setCombined } from '../stores/combiner.store';
-    import { getUiTexts, loadUiTexts } from '../stores/uiTexts.store';
     import CombinerManualUI from './CombinerManualUI.svelte';
 
-    export let app: App;
-    export let settings: PluginSettings;
-    export let originalContent: string = '';
-    export let combinedContent: string = '';
-    export let defaultFileName: string = 'note-combinee.md';
-    export let checkFileExists: (name: string) => Promise<boolean> = async () => false;
+    export let app;
+    export let plugin;
+    export let isDebug = false;
+    export let settings = {};
+    export let originalContent = '';
+    export let combinedContent = '';
+    export let defaultFileName = 'note-combinee.md';
+    export let checkFileExists = async () => false;
 
-    let markdownProcessor: MarkdownProcessor;
-    let mainFileContent: string = '';
+    let markdownProcessor;
+    let mainFileContent = '';
     let saveMessage = '';
-    let texts = getUiTexts();
-    let state = getCombinerState();
     let showManualUI = false;
 
-    onMount(() => {
-        loadUiTexts();
-        texts = getUiTexts();
-    });
+    // Fonction utilitaire pour générer un nom de fichier unique
+    async function getUniqueFileName(baseName, checkExists) {
+        let fileName = baseName;
+        let counter = 1;
+        
+        while (await checkExists(fileName)) {
+            const nameWithoutExt = baseName.replace(/\.[^/.]+$/, '');
+            const ext = baseName.match(/\.[^/.]+$/)?.[0] || '';
+            fileName = `${nameWithoutExt}_${counter}${ext}`;
+            counter++;
+        }
+        
+        return fileName;
+    }
 
     async function handleCombine() {
         if (markdownProcessor) {
-            // A simplified logic to get the active file content
+            // Logique simplifiée pour obtenir le contenu du fichier actif
             const activeFile = app.workspace.getActiveFile();
             if (activeFile) {
                 const content = await app.vault.read(activeFile);
                 combinedContent = await markdownProcessor.processMarkdown(content);
-                setOriginal(content);
-                setCombined(combinedContent);
-                state = getCombinerState();
+                originalContent = content;
             }
         }
     }
@@ -45,8 +48,8 @@
     async function saveCombined() {
         const fileName = await getUniqueFileName(defaultFileName, checkFileExists);
         // TODO: remplacer par la vraie logique de sauvegarde Obsidian
-        // await saveToVault(fileName, state.combined);
-        saveMessage = `${texts.save_success || 'Fichier sauvegardé sous :'} ${fileName}`;
+        // await saveToVault(fileName, combinedContent);
+        saveMessage = `Fichier sauvegardé sous : ${fileName}`;
     }
 </script>
 
@@ -72,9 +75,9 @@
     <button on:click={handleCombine}>Combine Active Note</button>
 
     <div>
-        <SplitView original={state.original} combined={state.combined} />
+        <SplitView original={originalContent} combined={combinedContent} />
         <div style="margin-top:1rem; display:flex; align-items:center; gap:1rem;">
-            <button on:click={saveCombined}>{texts.save_button || '💾 Sauvegarder le combiné'}</button>
+            <button on:click={saveCombined}>💾 Sauvegarder le combiné</button>
             {#if saveMessage}
                 <span>{saveMessage}</span>
             {/if}

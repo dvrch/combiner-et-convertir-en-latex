@@ -1,37 +1,27 @@
-<script lang="ts">
-	import { App } from 'obsidian';
-	import type { PluginSettings } from '../settings';
-	
-	export let app: App;
-	export let basePath: string;
-	export let settings: PluginSettings;
-	export let config: any = null;
-	export let combinedFileName: string = '';
-	
-	// Interface pour les liens traités
-	interface ProcessedLink {
-		original: string;
-		processed: string;
-		type: 'embed' | 'internal' | 'image' | 'external';
-	}
+<script>
+	export let app;
+	export let basePath = '';
+	export let settings = {};
+	export let config = null;
+	export let combinedFileName = '';
 	
 	// État du traitement
-	let processedFiles = new Set<string>();
+	let processedFiles = new Set();
 	let processingStatus = '';
 	
 	// Liste globale des fichiers inclus dans le combiné
-	let includedFiles = new Set<string>();
+	let includedFiles = new Set();
 	
 	// Table des fichiers inclus comme embed et leurs sections/blocs
-	let embedAnchors: Record<string, {file: string, sections: string[], blocks: string[]}> = {};
+	let embedAnchors = {};
 	
 	// Ajout d'un set pour les fichiers cachés déjà insérés
-	let hiddenIncludedFiles = new Set<string>();
+	let hiddenIncludedFiles = new Set();
 	
-	function extractAnchorsFromContent(file: string, content: string) {
+	function extractAnchorsFromContent(file, content) {
 		// Titres
-		const sectionAnchors: string[] = [];
-		const blockAnchors: string[] = [];
+		const sectionAnchors = [];
+		const blockAnchors = [];
 		const lines = content.split('\n');
 		for (const line of lines) {
 			const headingMatch = line.match(/^(#+)\s*(.*)$/);
@@ -49,7 +39,7 @@
 	}
 	
 	// Traitement des liens embarqués (![[note]])
-	async function processEmbeddedLinks(text: string): Promise<string> {
+	async function processEmbeddedLinks(text) {
 		const embedRegex = /!\[\[([^\]#|^]+)(?:(#)([^\]|]+))?(?:(\^)([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
 		let processedText = text;
 		let match;
@@ -103,7 +93,7 @@
 	
 	// Traitement des liens internes ([[note]])
 	// Nouvelle version de processInternalLinks : insertion du bloc caché juste avant la ligne du lien
-	async function processInternalLinks(text: string): Promise<string> {
+	async function processInternalLinks(text) {
 		// Regex modifiée pour ne pas matcher les liens qui commencent déjà par [[#
 		const internalLinkRegex = /\[\[(?!\#)([^\]#|^/]+)(?:(#)([^\]|]+))?(?:(\^)([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
 		
@@ -113,7 +103,7 @@
 		let codeBlockStart = -1;
 	
 		// Repérer les blocs de code (``` ou ~~~)
-		const codeBlockLines: {start: number, end: number}[] = [];
+		const codeBlockLines = [];
 		for (let i = 0; i < lines.length; i++) {
 			if (/^(```|~~~)/.test(lines[i].trim())) {
 				if (!inCodeBlock) {
@@ -127,7 +117,7 @@
 		}
 	
 		// On va construire un nouveau tableau de lignes avec les blocs cachés insérés au bon endroit
-		let newLines: string[] = [];
+		let newLines = [];
 		for (let i = 0; i < lines.length; i++) {
 			let line = lines[i];
 			let match;
@@ -217,7 +207,7 @@
 	}
 	
 	// Traitement des images (![[image]])
-	async function processImages(text: string): Promise<string> {
+	async function processImages(text) {
 		const imageRegex = /!\[\[([^\]#|^]+)(?:(#)([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
 		let processedText = text;
 		let match;
@@ -264,15 +254,15 @@
 	}
 	
 	// Traitement des liens externes et autres éléments
-	function processExternalLinks(text: string): string {
+	function processExternalLinks(text) {
 		// Les liens externes sont généralement bien gérés par Obsidian
 		// On peut les laisser tels quels
 		return text;
 	}
 	
 	// Fonction pour préserver les blocs mathématiques
-	function preserveMathBlocks(text: string): { text: string, mathBlocks: string[] } {
-		const mathBlocks: string[] = [];
+	function preserveMathBlocks(text) {
+		const mathBlocks = [];
 		let blockCounter = 0;
 		
 		// Remplacer les blocs $$ par des placeholders
@@ -287,7 +277,7 @@
 	}
 	
 	// Fonction pour restaurer les blocs mathématiques
-	function restoreMathBlocks(text: string, mathBlocks: string[]): string {
+	function restoreMathBlocks(text, mathBlocks) {
 		let restoredText = text;
 		mathBlocks.forEach((block, index) => {
 			restoredText = restoredText.replace(`__MATH_BLOCK_${index}__`, block);
@@ -296,7 +286,7 @@
 	}
 	
 	// Fonction principale qui traite tous les types de liens
-	async function processAllLinks(text: string, currentPath: string): Promise<string> {
+	async function processAllLinks(text, currentPath) {
 		// Préserver les blocs mathématiques
 		const { text: preservedText, mathBlocks } = preserveMathBlocks(text);
 		
@@ -313,7 +303,7 @@
 	}
 	
 	// Fonction pour calculer le chemin relatif entre deux fichiers
-	function getRelativePath(fromPath: string, toPath: string): string {
+	function getRelativePath(fromPath, toPath) {
 		if (!fromPath || !toPath) return toPath;
 		
 		const fromParts = fromPath.split('/').filter(p => p);
@@ -343,12 +333,12 @@
 		return upPath + relativePath;
 	}
 	
-	function extractSection(content: string, sectionName: string): string {
+	function extractSection(content, sectionName) {
 		const lines = content.split('\n');
 		// Tolérance : ignore la casse, espaces, tirets, underscores
 		const normalizedSection = sectionName.trim().toLowerCase().replace(/[-_\s]+/g, '');
 		let inSection = false;
-		const sectionContent: string[] = [];
+		const sectionContent = [];
 		let currentLevel = 0;
 		let found = false;
 	
@@ -377,7 +367,7 @@
 		}
 	}
 	
-	function extractBlock(content: string, blockId: string): string {
+	function extractBlock(content, blockId) {
 		const lines = content.split('\n');
 		const blockRegex = new RegExp(`\\s\\^${blockId}$`);
 		
@@ -389,9 +379,9 @@
 		return '';
 	}
 	
-	function extractTableContent(content: string): string {
+	function extractTableContent(content) {
 		const lines = content.split('\n');
-		let result: string[] = [];
+		let result = [];
 		// Cherche la ligne '=this.caption' si elle existe
 		const captionIdx = lines.findIndex(line => line.trim().startsWith('=this.caption'));
 		if (captionIdx !== -1) {
@@ -408,9 +398,9 @@
 		return result.join('\n');
 	}
 	
-	function extractFigureContent(content: string): string {
+	function extractFigureContent(content) {
 		const lines = content.split('\n');
-		let result: string[] = [];
+		let result = [];
 		for (let i = 0; i < lines.length; i++) {
 			if (lines[i].includes('![[')) {
 				// Ajoute la ligne précédente si c'est une caption
@@ -425,13 +415,13 @@
 	}
 	
 	// Ajoute un suffixe -comb aux titres et blocs dans le contenu inclus
-	function suffixIdsForCombined(content: string): string {
+	function suffixIdsForCombined(content) {
 		// Ne plus rien ajouter
 		return content;
 	}
 
 	// Fonction utilitaire pour transformer les liens [[nom#^xxx]] en [[#^xxx]] si nom est inclus
-	function convertInternalBlockLinksToLocal(text: string): string {
+	function convertInternalBlockLinksToLocal(text) {
 		// Regex : [[nom#^blockid]] ou [[nom#^blockid|texte]]
 		return text.replace(/\[\[([^\]#|^/]+)#\^([\w-]+)(?:\|([^\]]+))?\]\]/g, (match, noteName, blockId, displayText) => {
 			if (includedFiles.has(noteName.toLowerCase())) {
@@ -446,7 +436,7 @@
 	}
 	
 	// Méthode exposée pour traiter le contenu Markdown
-	export async function processMarkdown(content: string): Promise<string> {
+	export async function processMarkdown(content) {
 		processingStatus = 'Traitement des liens...';
 		processedFiles.clear();
 		includedFiles.clear();
@@ -466,7 +456,7 @@
 	}
 	
 	// Méthode pour réinitialiser l'état
-	export function resetState(): void {
+	export function resetState() {
 		processedFiles.clear();
 		processingStatus = '';
 		includedFiles.clear();

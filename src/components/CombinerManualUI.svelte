@@ -1,26 +1,22 @@
-<script lang="ts">
+<script>
 import { onMount } from 'svelte';
-import { getCommands, loadCommands } from '../stores/uiTexts.store';
-import type { App, TFile, TAbstractFile } from 'obsidian';
 
-export let app: App;
+export let app;
 
-let files: TFile[] = [];
-let fileNames: string[] = [];
-let combinedName: string = 'notes-combinees.md';
-let previewContent: string = '';
+let files = [];
+let fileNames = [];
+let combinedName = 'notes-combinees.md';
+let previewContent = '';
 let showPreview = false;
-let commands: any[] = [];
 let search = '';
-let searchResults: TFile[] = [];
-let draggingIdx: number|null = null;
+let searchResults = [];
+let draggingIdx = null;
 
 onMount(async () => {
-    await loadCommands();
-    commands = getCommands();
+    // Initialisation sans les stores
 });
 
-function handleDrop(event: DragEvent) {
+function handleDrop(event) {
     event.preventDefault();
     const items = event.dataTransfer?.items;
     if (!items) return;
@@ -33,37 +29,37 @@ function handleDrop(event: DragEvent) {
             }
         } else if (item.kind === 'string') {
             item.getAsString(async (path) => {
-                const tfile = app.vault.getAbstractFileByPath(path) as TAbstractFile;
-                if (tfile && 'extension' in tfile && (tfile as any).extension === 'md') {
-                    if (!files.find(f => f.path === (tfile as TFile).path))
-                        files.push(tfile as TFile);
+                const tfile = app.vault.getAbstractFileByPath(path);
+                if (tfile && 'extension' in tfile && tfile.extension === 'md') {
+                    if (!files.find(f => f.path === tfile.path))
+                        files.push(tfile);
                 }
             });
         }
     }
 }
 
-function handleDragOver(event: DragEvent) {
+function handleDragOver(event) {
     event.preventDefault();
 }
 
-function moveFile(from: number, to: number) {
+function moveFile(from, to) {
     if (from === to) return;
     const f = files.splice(from, 1)[0];
     files.splice(to, 0, f);
 }
 
-function removeFile(idx: number) {
+function removeFile(idx) {
     files.splice(idx, 1);
 }
 
-function onDragStart(idx: number) {
+function onDragStart(idx) {
     draggingIdx = idx;
 }
 function onDragEnd() {
     draggingIdx = null;
 }
-function onDropOnItem(idx: number) {
+function onDropOnItem(idx) {
     if (draggingIdx !== null && draggingIdx !== idx) {
         moveFile(draggingIdx, idx);
         draggingIdx = null;
@@ -93,7 +89,7 @@ function handleSearch() {
     searchResults = allFiles.filter(f => f.name.toLowerCase().includes(search.trim().toLowerCase()) && !files.find(ff => ff.path === f.path));
 }
 
-function addSearchedFile(f: TFile) {
+function addSearchedFile(f) {
     files.push(f);
     search = '';
     searchResults = [];
@@ -218,23 +214,11 @@ function addSearchedFile(f: TFile) {
         <label>Nom du fichier combiné :</label>
         <input type="text" bind:value={combinedName} style="flex:1;" />
     </div>
-    <button on:mouseenter={handlePreview} on:mouseleave={closePreview} style="margin-bottom:1rem;">
-        Aperçu du combiné (survol)
-    </button>
-    <button style="margin-left:1rem;">Combiner et créer le fichier</button>
+    <button on:click={handlePreview}>Aperçu</button>
     {#if showPreview}
-        <div class="preview-modal" on:mouseleave={closePreview}>
-            <h3>Aperçu du combiné</h3>
+        <div class="preview-modal">
+            <button on:click={closePreview} style="position:absolute; top:1rem; right:1rem;">✖</button>
             <pre>{previewContent}</pre>
-            <button on:click={closePreview}>Fermer</button>
         </div>
     {/if}
-    <div style="margin-top:2rem;">
-        <h3>Commandes disponibles</h3>
-        <ul>
-            {#each commands as cmd}
-                <li><b>{cmd.name}</b> — {cmd.description}</li>
-            {/each}
-        </ul>
-    </div>
 </div> 

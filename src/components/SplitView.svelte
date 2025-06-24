@@ -1,8 +1,6 @@
-<script lang="ts">
-  import { getUiTexts } from '../stores/uiTexts.store';
-  export let original: string = '';
-  export let combined: string = '';
-  let texts = getUiTexts();
+<script>
+  export let original = '';
+  export let combined = '';
 </script>
 
 <style>
@@ -28,11 +26,11 @@
 
 <div class="split-view">
   <div class="pane">
-    <div class="pane-title">{texts['splitview.original'] || 'Original'}</div>
+    <div class="pane-title">Original</div>
     <pre>{original}</pre>
   </div>
   <div class="pane">
-    <div class="pane-title">{texts['splitview.combined'] || 'Combiné'}</div>
+    <div class="pane-title">Combiné</div>
     <pre>{combined}</pre>
   </div>
 </div> 

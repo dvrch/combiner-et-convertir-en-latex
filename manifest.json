@@ -1,9 +1,9 @@
 {
   "id": "obsidian-combiner",
   "version": "1.0.0",
-  "name": "obsidian-combiner",
+  "name": "Combiner et convertir en LaTeX",
+  "minAppVersion": "0.15.0",
+  "isDesktopOnly": false,
   "description": "Combine and convert notes.",
-  "author": "",
-  "minAppVersion": "latest",
-  "isDesktopOnly": false
+  "author": ""
 }

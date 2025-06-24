@@ -3,6 +3,8 @@
     import MarkdownProcessor from './MarkdownProcessor.svelte';
     import SplitView from './SplitView.svelte';
     import CombinerManualUI from './CombinerManualUI.svelte';
+    import yaml from 'js-yaml';
+    import { readFile } from 'fs/promises';
 
     export let app;
     export let plugin;
@@ -42,19 +44,8 @@
     // Charger les textes UI depuis le fichier YAML
     async function loadUiTexts() {
         try {
-            // En mode développement, on peut charger depuis le fichier
-            // En production, on utilise des valeurs par défaut
-            uiTexts = {
-                'splitview.original': 'Original',
-                'splitview.combined': 'Combiné',
-                'save_button': '💾 Sauvegarder le combiné',
-                'save_success': 'Fichier sauvegardé sous :',
-                'settings.title': 'Paramètres',
-                'settings.hidden_embeds': 'Utiliser les embeds cachés',
-                'settings.hidden_embeds_desc': 'Inclure le contenu des liens dans des blocs cachés %%...%%',
-                'manual_ui.title': 'Combinaison manuelle avancée',
-                'manual_ui.close': 'Fermer la combinaison manuelle'
-            };
+            const yamlText = await readFile('src/locales/fr.yaml', 'utf8');
+            uiTexts = yaml.load(yamlText) || {};
         } catch (error) {
             console.error('Erreur de chargement des textes UI:', error);
             // Valeurs par défaut en cas d'erreur

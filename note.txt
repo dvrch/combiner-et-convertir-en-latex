@@ -96,6 +96,18 @@ té de l autre apres la combinaison  dan sl onglet a droite
  un champs avvec nom par defaut avec possibilité d'dition
  > j ai l immpression que clique-glisser ne marche pas.
   il y devait avoir un chammps ou les sont listés progressivement les fichiers ajoutés avec possibilitéé de modifier l ordre ; et une petitee croix pour dupprimmer | possibilité d ajout via un champs de recherche sur les fichier du vault
+--------------
+pas de gestion de hidden (et doit etre activé dans les setttign de plugin obs  | donc pas de parametre dans le UI perso : (HUDDEN c est si >> [[xxx]] contraire aus embeded pour '![[xxx]]'
+
+la note combine l affiche pas a cote de l original , en + n est pas dans le meme dossier 
+>UI
+  - effacer chaoriginal et combiné, 
+  - un seu bouton convert
+  _ voit les notre proche pendant la saisie
+  - aprecu en survol de bouton convert...
+  - bouton conver... converti l actif si aucun n est ajouté
+  - pas besoin d un mode UI debug , je comprend pas a quoi ça sert 
+  - dnc 2 commandes: convert... directement actif/oouvre l UI
 
 ----------------
 corriger et build 

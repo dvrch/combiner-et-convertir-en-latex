@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, Modal, Notice } from 'obsidian';
 import CombinerApp from './components/CombinerApp.svelte';
 
 export default class CombinerPlugin extends Plugin {
@@ -20,6 +20,15 @@ export default class CombinerPlugin extends Plugin {
 			name: 'Debug Combiner',
 			callback: () => {
 				this.debugCombiner();
+			}
+		});
+
+		// Ajouter la commande de test pour combiner la note active
+		this.addCommand({
+			id: 'combiner-active-note',
+			name: 'Combiner la note active',
+			callback: () => {
+				this.combineActiveNote();
 			}
 		});
 
@@ -68,29 +77,92 @@ export default class CombinerPlugin extends Plugin {
 			}
 		});
 	}
+
+	async combineActiveNote() {
+		const activeFile = this.app.workspace.getActiveFile();
+		if (!activeFile) {
+			new Notice('Aucun fichier actif');
+			return;
+		}
+
+		try {
+			// Créer une instance temporaire du processeur
+			const container = document.createElement('div');
+			document.body.appendChild(container);
+			
+			const processor = new (await import('./components/MarkdownProcessor.svelte')).default({
+				target: container,
+				props: {
+					app: this.app,
+					settings: {},
+					basePath: '',
+					config: null,
+					combinedFileName: ''
+				}
+			});
+
+			// Lire le contenu du fichier actif
+			const content = await this.app.vault.read(activeFile);
+			
+			// Traiter le contenu
+			const combinedContent = await processor.processMarkdown(content);
+			
+			// Créer un nom de fichier unique
+			const baseName = activeFile.basename + '-combined.md';
+			let fileName = baseName;
+			let counter = 1;
+			
+			while (await this.app.vault.adapter.exists(fileName)) {
+				fileName = `${activeFile.basename}-combined-${counter}.md`;
+				counter++;
+			}
+			
+			// Sauvegarder le fichier combiné
+			await this.app.vault.create(fileName, combinedContent);
+			
+			// Nettoyer
+			processor.$destroy();
+			document.body.removeChild(container);
+			
+			new Notice(`Fichier combiné créé : ${fileName}`);
+			
+			// Ouvrir le fichier créé
+			const newFile = this.app.vault.getAbstractFileByPath(fileName);
+			if (newFile) {
+				this.app.workspace.getLeaf().openFile(newFile);
+			}
+			
+		} catch (error) {
+			console.error('Erreur lors de la combinaison:', error);
+			new Notice('Erreur lors de la combinaison: ' + error.message);
+		}
+	}
 }
 
-class CombinerModal {
+class CombinerModal extends Modal {
 	constructor(app, plugin) {
-		this.app = app;
+		super(app);
 		this.plugin = plugin;
-		this.modal = null;
 		this.component = null;
 	}
 
 	open() {
-		this.modal = new (this.app.constructor.Modal)(this.app);
-		this.modal.containerEl.addClass('combiner-modal');
+		super.open();
+		this.containerEl.addClass('combiner-modal');
 		
 		this.component = new CombinerApp({
-			target: this.modal.contentEl,
+			target: this.contentEl,
 			props: {
 				app: this.app,
 				plugin: this.plugin,
 				isDebug: false
 			}
 		});
+	}
 
-		this.modal.open();
+	onClose() {
+		if (this.component) {
+			this.component.$destroy();
+		}
 	}
 } 

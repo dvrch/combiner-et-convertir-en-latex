@@ -1,6 +1,7 @@
 <script>
   export let original = '';
   export let combined = '';
+  export let uiTexts = {};
 </script>
 
 <style>
@@ -26,11 +27,11 @@
 
 <div class="split-view">
   <div class="pane">
-    <div class="pane-title">Original</div>
+    <div class="pane-title">{uiTexts['splitview.original'] || 'Original'}</div>
     <pre>{original}</pre>
   </div>
   <div class="pane">
-    <div class="pane-title">Combiné</div>
+    <div class="pane-title">{uiTexts['splitview.combined'] || 'Combiné'}</div>
     <pre>{combined}</pre>
   </div>
 </div> 

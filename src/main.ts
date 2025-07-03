@@ -1,5 +1,6 @@
 import { Plugin, WorkspaceLeaf, Notice } from 'obsidian';
 import CombinerApp from './components/CombinerApp.svelte';
+import MarkdownProcessor from './components/MarkdownProcessor.svelte';
 
 let combinerModal: HTMLElement | null = null;
 
@@ -13,6 +14,45 @@ export default class CombinerPlugin extends Plugin {
         // Ouvre l'UI Svelte pour combiner la note active
         this.openCombinerApp();
       },
+    });
+
+    // Commande : combiner la note active (direct, sans UI)
+    this.addCommand({
+      id: 'combiner-note-active-direct',
+      name: 'Combiner la note active (direct)',
+      callback: async () => {
+        try {
+          const activeFile = this.app.workspace.getActiveFile();
+          if (!activeFile) {
+            new Notice('Aucun fichier actif trouvé.');
+            return;
+          }
+          if (!activeFile.parent) {
+            new Notice('Impossible de déterminer le dossier parent du fichier actif.');
+            return;
+          }
+          const content = await this.app.vault.read(activeFile);
+          // Instancier MarkdownProcessor en mode logique (sans UI)
+          const processor = new MarkdownProcessor({
+            target: document.createElement('div'),
+            props: { app: this.app }
+          });
+          const combinedContent = await processor.processMarkdown(content);
+          // Générer un nom unique
+          let baseName = activeFile.basename + '-combine.md';
+          let fileName = baseName;
+          let counter = 1;
+          while (await this.app.vault.adapter.exists(activeFile.parent.path + '/' + fileName)) {
+            fileName = activeFile.basename + '-combine-' + counter + '.md';
+            counter++;
+          }
+          const newFile = await this.app.vault.create(activeFile.parent.path + '/' + fileName, combinedContent);
+          await this.app.workspace.getLeaf('split', 'vertical').openFile(newFile);
+          new Notice('Fichier combiné créé : ' + fileName);
+        } catch (e) {
+          new Notice('Erreur lors de la combinaison : ' + (e?.message || e));
+        }
+      }
     });
 
     // Commande : ouvrir l'UI manuelle

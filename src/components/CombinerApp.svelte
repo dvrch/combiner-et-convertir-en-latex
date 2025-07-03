@@ -14,17 +14,19 @@
     export let combinedContent = '';
     export let defaultFileName = 'note-combinee.md';
     export let checkFileExists = async () => false;
+    export let showManualUI = false; // prop
 
     let markdownProcessor;
     let mainFileContent = '';
     let saveMessage = '';
-    let showManualUI = false;
     let showSettings = false;
     let uiTexts = {};
+    let uiError = '';
     let currentSettings = {
         useHiddenEmbeds: true,
         // Autres paramètres à ajouter ici
     };
+    let showManualUILocal = showManualUI; // état local initialisé à partir de la prop
 
     // Fonction utilitaire pour générer un nom de fichier unique
     async function getUniqueFileName(baseName, checkExists) {
@@ -96,16 +98,22 @@
     }
 
     onMount(() => {
-        loadUiTexts();
+        loadUiTexts().catch(e => {
+            uiError = 'Erreur de chargement des textes UI';
+        });
+        // Ne pas réaffecter showManualUI ici, la prop est déjà transmise correctement
     });
 </script>
 
 <div class="combiner-app">
+    {#if uiError}
+        <div style="color:red; font-weight:bold;">{uiError}</div>
+    {/if}
     <h1>Markdown Combiner</h1>
 
     <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
-        <button on:click={() => showManualUI = !showManualUI}>
-            {showManualUI ? (uiTexts['manual_ui.close'] || 'Fermer la combinaison manuelle') : (uiTexts['manual_ui.title'] || 'Combinaison manuelle avancée')}
+        <button on:click={() => showManualUILocal = !showManualUILocal}>
+            {showManualUILocal ? (uiTexts['manual_ui.close'] || 'Fermer la combinaison manuelle') : (uiTexts['manual_ui.title'] || 'Combinaison manuelle avancée')}
         </button>
         <button on:click={() => showSettings = !showSettings}>
             {showSettings ? 'Fermer les paramètres' : '⚙️ Paramètres'}
@@ -127,7 +135,7 @@
         </div>
     {/if}
 
-    {#if showManualUI}
+    {#if showManualUILocal}
         <CombinerManualUI {app} />
     {/if}
 

@@ -1,0 +1,32 @@
+---
+description: appli général
+globs: 
+alwaysApply: false
+---
+dvrch
+dvrch@gmail.com
+name: DJONTSO Victorien
+password: ********
+
+langue : francais
+# Obsidian Markdown Combiner Plugin
+
+**Objective:** Develop an Obsidian plugin that combines the content of a main Markdown file with its linked Markdown files (e.g., `![[another_note]]`). The plugin should recursively include content from nested links, resulting in a single, consolidated Markdown file.
+
+**Technology Stack:**
+*   **Framework:** Svelte (targeting version 4, as version 5 has known issues). All core functionalities should be implemented using Svelte components.
+*   **Language:** svelte 4 (+TypeScript  
+*   **Package Manager:** pnpm
+
+**Core Principles:**
+*   **Simplicity & Logic:** The code should be easy to understand and follow clear logical patterns.
+*   **Intelligence & Flexibility:** The plugin should be robust enough to handle various linking scenarios and allow for future expansions (e.g., integration with external data sources like APIs or YAML files).
+*   **Usability & Collaboration:** The plugin should be intuitive for users and designed for easy maintenance and collaborative development.
+
+**Inspiration/Reference:**
+The plugin's core functionality is inspired by the Python workflow found at `/c:\Users\dvrch\Desktop\4plug\.obsidian\plugins\Straightforward-Obsidian2Latex-DV`. While that workflow targets LaTeX output, this plugin aims to achieve similar Markdown consolidation directly within Obsidian. We seek a more robust and simpler parsing logic than the referenced Python workflow, potentially exploring structured data approaches (e.g., YAML-like syntax for configuration or linking).
+
+utiliser pnpm et non npm
+noms relatifs au contenu
+
+tout en composant svelte 4

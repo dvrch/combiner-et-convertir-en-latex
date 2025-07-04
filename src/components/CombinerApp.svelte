@@ -4,7 +4,7 @@
     import SplitView from './SplitView.svelte';
     import CombinerManualUI from './CombinerManualUI.svelte';
     import yaml from 'js-yaml';
-    import { readFile } from 'fs/promises';
+    
 
     export let app;
     export let plugin;
@@ -46,7 +46,8 @@
     // Charger les textes UI depuis le fichier YAML
     async function loadUiTexts() {
         try {
-            const yamlText = await readFile('src/locales/fr.yaml', 'utf8');
+            const basePath = plugin.manifest.dir;
+            const yamlText = await app.vault.adapter.read(`${basePath}/src/locales/fr.yaml`);
             uiTexts = yaml.load(yamlText) || {};
         } catch (error) {
             console.error('Erreur de chargement des textes UI:', error);

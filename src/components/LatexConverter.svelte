@@ -51,11 +51,9 @@ function convertBasicFormatting(text: string): string {
 function convertLinks(text: string): string {
     // Liens externes
     text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '\\href{$2}{$1}');
-    
     // Liens internes (Obsidian)
     text = text.replace(/\[\[([^\]|]+)\]\]/g, '$1');
     text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2');
-    
     return text;
 }
 
@@ -63,7 +61,6 @@ function convertLinks(text: string): string {
 function convertLists(text: string): string {
     let inList = false;
     let listType = '';
-    
     return text.split('\n').map(line => {
         if (line.match(/^\s*[-*+]\s/)) {
             if (!inList || listType !== 'itemize') {
@@ -93,8 +90,6 @@ function convertLists(text: string): string {
 function convertCodeBlocks(text: string): string {
     let inCodeBlock = false;
     let language = '';
-    let codeContent: string[] = [];
-    
     return text.split('\n').map(line => {
         const codeBlockStart = line.match(/^```(\w*)$/);
         if (codeBlockStart) {
@@ -117,21 +112,19 @@ function convertCodeBlocks(text: string): string {
 // Convertit les tables
 function convertTables(text: string): string {
     let inTable = false;
-    let tableContent: string[] = [];
     let columnCount = 0;
-    
     return text.split('\n').map(line => {
         if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
             if (!inTable) {
                 inTable = true;
                 columnCount = (line.match(/\|/g) || []).length - 1;
                 return '\\begin{tabular}{' + '|c'.repeat(columnCount) + '|}\n\\hline\n' +
-                    line.trim().slice(1, -1).split('|').map(cell => cell.trim()).join(' & ') + ' \\\\\n\\hline';
+                    line.trim().slice(1, -1).split('|').map(cell => cell.trim()).join(' & ') + ' \\\\n\\hline';
             }
             if (line.trim().match(/^[\|\-:\s]+$/)) {
                 return '';
             }
-            return line.trim().slice(1, -1).split('|').map(cell => cell.trim()).join(' & ') + ' \\\\\n\\hline';
+            return line.trim().slice(1, -1).split('|').map(cell => cell.trim()).join(' & ') + ' \\\\n\\hline';
         }
         if (inTable && line.trim() === '') {
             inTable = false;
@@ -145,10 +138,8 @@ function convertTables(text: string): string {
 function convertMath(text: string): string {
     // Inline math
     text = text.replace(/\$([^$]+)\$/g, '\\($1\\)');
-    
     // Display math
     text = text.replace(/\$\$([\s\S]+?)\$\$/g, '\\[\n$1\n\\]');
-    
     return text;
 }
 
@@ -174,9 +165,7 @@ function generateLatexFooter(): string {
 export async function convertToLatex(markdownContent: string, title: string = ''): Promise<string> {
     try {
         conversionStatus = 'Conversion en cours...';
-        
         let content = markdownContent;
-        
         // Application des conversions dans l'ordre
         content = convertMath(content);
         content = convertCodeBlocks(content);
@@ -185,10 +174,8 @@ export async function convertToLatex(markdownContent: string, title: string = ''
         content = convertLists(content);
         content = convertLinks(content);
         content = convertBasicFormatting(content);
-        
         // Assemblage du document final
         latexOutput = generateLatexHeader(title) + content + generateLatexFooter();
-        
         conversionStatus = 'Conversion terminée';
         return latexOutput;
     } catch (error) {

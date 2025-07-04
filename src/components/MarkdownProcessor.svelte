@@ -87,7 +87,7 @@
 					// Placer l'ancre de bloc markdown sur la même ligne que EMBED START
 					const blockAnchor = `^${noteName.replace(/_/g, '-')}`;
 					const startComment = `%% EMBED START: [[${noteName}]] %% ${blockAnchor}\n`;
-					const endComment = `\n%% EMBED END: ${noteName} %%`;
+					const endComment = `\n%% EMBED END: [[${noteName}]] %%`;
 					processedText = processedText.replace(fullMatch, startComment + recursivelyProcessed + endComment);
 				} else {
 					processedText = processedText.replace(fullMatch, `![[${noteName}]]`);

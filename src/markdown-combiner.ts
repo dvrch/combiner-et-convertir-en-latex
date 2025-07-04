@@ -51,8 +51,8 @@ export async function combineMarkdownNote(app: App, file: TFile, settings: Plugi
                     extractAnchorsFromContent(noteName, linkedContent);
                     const recursivelyProcessed = await processAllLinks(linkedContent, linkedFile.parent?.path || '');
                     const blockAnchor = `^${noteName.replace(/_/g, '-')}`;
-                    const startComment = `%% EMBED START: [${noteName}] %% ${blockAnchor}\n`;
-                    const endComment = `\n%% EMBED END: ${noteName} %%`;
+                    const startComment = `%% EMBED START: [[${noteName}]] %% ${blockAnchor}\n`;
+                    const endComment = `\n%% EMBED END: [[${noteName}]] %%`;
                     processedText = processedText.replace(fullMatch, startComment + recursivelyProcessed + endComment);
                 } else {
                     processedText = processedText.replace(fullMatch, `![[${noteName}]]`);

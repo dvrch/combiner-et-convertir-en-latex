@@ -3,7 +3,7 @@
     import { onMount } from 'svelte';
     import MarkdownProcessor from './MarkdownProcessor.svelte';
     import type { PluginSettings } from '../settings';
-    import SplitView from './SplitView.svelte';
+    
     import { getUniqueFileName } from '../markdown-combiner';
     import { getCombinerState, setOriginal, setCombined } from '../stores/combiner.store';
     import { getUiTexts, loadUiTexts } from '../stores/uiTexts.store';
@@ -12,8 +12,7 @@
 
     export let app: App;
     export let settings: PluginSettings;
-    export let originalContent: string = '';
-    export let combinedContent: string = '';
+    
     export let defaultFileName: string = 'note-combinee.md';
     export let checkFileExists: (name: string) => Promise<boolean> = async () => false;
 
@@ -98,7 +97,7 @@
         {showManualUI ? 'Fermer la combinaison manuelle' : 'Combinaison manuelle avancée'}
     </button>
     {#if showManualUI}
-        <CombinerManualUI {app} />
+        <CombinerManualUI {app} {markdownProcessor} />
     {/if}
 
     <MarkdownProcessor 
@@ -112,15 +111,7 @@
 
     <button on:click={handleCombine}>Combine Active Note</button>
 
-    <div>
-        <SplitView original={state.original} combined={state.combined} />
-        <div style="margin-top:1rem; display:flex; align-items:center; gap:1rem;">
-            <button on:click={saveCombined}>{texts.save_button || '💾 Sauvegarder le combiné'}</button>
-            {#if saveMessage}
-                <span>{saveMessage}</span>
-            {/if}
-        </div>
-    </div>
+    
 
     <div class="combiner-container">
         <h3>Combiner et Convertir en LaTeX</h3>

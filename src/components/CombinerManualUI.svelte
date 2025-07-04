@@ -4,12 +4,12 @@ import { getCommands, loadCommands } from '../stores/uiTexts.store';
 import type { App, TFile, TAbstractFile } from 'obsidian';
 
 export let app: App;
+export let markdownProcessor: any; // Assuming MarkdownProcessor type
 
 let files: TFile[] = [];
 let fileNames: string[] = [];
 let combinedName: string = 'notes-combinees.md';
-let previewContent: string = '';
-let showPreview = false;
+
 let commands: any[] = [];
 
 onMount(async () => {
@@ -56,19 +56,33 @@ function removeFile(idx: number) {
     files.splice(idx, 1);
 }
 
-async function handlePreview() {
-    // Pour la démo, concatène le contenu des fichiers
-    previewContent = '';
+async function handleCombineAndSave() {
+    if (!markdownProcessor) {
+        console.error("MarkdownProcessor is not available.");
+        return;
+    }
+
+    let combinedContent = '';
     for (const f of files) {
         const content = await app.vault.read(f);
-        previewContent += `\n---\n# ${f.name}\n` + content;
+        combinedContent += content + '\n'; // Simple concatenation for now
     }
-    showPreview = true;
+
+    // Process the combined content using the markdownProcessor
+    const processedContent = await markdownProcessor.processMarkdown(combinedContent);
+
+    // Save the processed content to a new file
+    try {
+        await app.vault.create(combinedName, processedContent);
+        console.log(`File ${combinedName} created successfully.`);
+        // Optionally, show a success message to the user
+    } catch (error) {
+        console.error(`Error creating file ${combinedName}:`, error);
+        // Optionally, show an error message to the user
+    }
 }
 
-function closePreview() {
-    showPreview = false;
-}
+
 </script>
 
 <style>
@@ -147,7 +161,7 @@ function closePreview() {
                 <span>{file.name}</span>
                 <span class="remove" on:click={() => removeFile(idx)}>✖</span>
                 {#if idx > 0}
-                    <button on:click={() => moveFile(idx, idx-1)}>↑</button>
+                    <button on:click={handleCombineAndSave} style="margin-left:1rem;">
                 {/if}
                 {#if idx < files.length-1}
                     <button on:click={() => moveFile(idx, idx+1)}>↓</button>
@@ -165,17 +179,7 @@ function closePreview() {
         <label>Nom du fichier combiné :</label>
         <input type="text" bind:value={combinedName} style="flex:1;" />
     </div>
-    <button on:mouseenter={handlePreview} on:mouseleave={closePreview} style="margin-bottom:1rem;">
-        Aperçu du combiné (survol)
-    </button>
-    <button style="margin-left:1rem;">Combiner et créer le fichier</button>
-    {#if showPreview}
-        <div class="preview-modal" on:mouseleave={closePreview}>
-            <h3>Aperçu du combiné</h3>
-            <pre>{previewContent}</pre>
-            <button on:click={closePreview}>Fermer</button>
-        </div>
-    {/if}
+    
     <div style="margin-top:2rem;">
         <h3>Commandes disponibles</h3>
         <ul>

@@ -76,10 +76,19 @@
             latexContent = await latexConverter.convertToLatex(combinedContent, activeFile.basename);
 
             // 5. Créer le fichier LaTeX
-            const latexFileName = activeFile.basename + '.tex';
+            const latexFileNameBase = activeFile.basename + '.tex';
             const parentPath = activeFile.parent?.path || '';
+
+            const checkLatexFileExists = async (name: string) => {
+                const fullPath = parentPath ? `${parentPath}/${name}` : name;
+                return await app.vault.adapter.exists(fullPath);
+            };
+
+            const uniqueLatexFileName = await getUniqueFileName(latexFileNameBase, checkLatexFileExists);
+            const fullLatexFilePath = parentPath ? `${parentPath}/${uniqueLatexFileName}` : uniqueLatexFileName;
+
             await app.vault.create(
-                parentPath ? `${parentPath}/${latexFileName}` : latexFileName,
+                fullLatexFilePath,
                 latexContent
             );
 

@@ -28,14 +28,14 @@ export default class MyPlugin extends Plugin {
         this.addSettingTab(new SampleSettingTab(this.app, this));
 
         this.addRibbonIcon('dice', 'Combine Notes', () => {
-            this.activateView();
+            this.openFloatingCombiner();
         });
 
         this.addCommand({
             id: 'open-combiner-view',
             name: 'Open Combiner',
             callback: () => {
-                this.activateView();
+                this.openFloatingCombiner();
             },
         });
 
@@ -110,6 +110,81 @@ export default class MyPlugin extends Plugin {
             // Assuming the Svelte component has a destroy method
             // this.view.$destroy(); 
         }
+        const container = document.getElementById('combiner-debug-root');
+        if (container) {
+            container.remove();
+        }
+    }
+
+    openFloatingCombiner() {
+        let container = document.getElementById('combiner-debug-root');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'combiner-debug-root';
+            container.style.position = 'fixed';
+            container.style.top = '60px';
+            container.style.right = '20px';
+            container.style.zIndex = '9999';
+            container.style.background = 'var(--background-primary)';
+            container.style.border = '1px solid var(--background-modifier-border)';
+            container.style.borderRadius = '8px';
+            container.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+            container.style.padding = '1rem';
+            container.style.maxWidth = '400px';
+            document.body.appendChild(container);
+
+            // Make it draggable
+            let isDragging = false;
+            let currentX: number;
+            let currentY: number;
+            let initialX: number;
+            let initialY: number;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            container.addEventListener("mousedown", dragStart);
+            container.addEventListener("mouseup", dragEnd);
+            container.addEventListener("mousemove", drag);
+
+            function dragStart(e: MouseEvent) {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+
+                if (e.target === container) {
+                    isDragging = true;
+                }
+            }
+
+            function dragEnd(e: MouseEvent) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+
+            function drag(e: MouseEvent) {
+                if (isDragging && container) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    setTranslate(currentX, currentY, container);
+                }
+            }
+
+            function setTranslate(xPos: number, yPos: number, el: HTMLElement) {
+                el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
+            }
+        } else {
+            container.innerHTML = '';
+        }
+        const settings = getSettings();
+        new CombinerApp({
+            target: container,
+            props: { app: this.app, settings }
+        });
     }
 
     activateView() {

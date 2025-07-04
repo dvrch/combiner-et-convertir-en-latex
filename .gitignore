@@ -43,3 +43,13 @@ coverage/
 # Obsidian specific
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json 
+.obsidian/app.json
+.obsidian/appearance.json
+.obsidian/core-plugins.json
+src/gfhdgd.md
+
+
+
+
+# Ignore Smart Connections folder
+.smart-connections

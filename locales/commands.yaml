@@ -1,0 +1,4 @@
+- name: "Ouvrir l'interface de combinaison manuelle"
+  description: "Ouvre une interface pour combiner manuellement des notes."
+- name: "Convertir la note actuelle en LaTeX"
+  description: "Convertit la note actuellement ouverte en un fichier LaTeX."

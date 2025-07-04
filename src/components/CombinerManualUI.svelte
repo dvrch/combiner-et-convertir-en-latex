@@ -1,7 +1,11 @@
 <script lang="ts">
-import { onMount } from 'svelte';
+import { onMount, createEventDispatcher } from 'svelte';
 import { getCommands, loadCommands } from '../stores/uiTexts.store';
-import type { App, TFile, TAbstractFile } from 'obsidian';
+import { App, TFile, TAbstractFile, Notice } from 'obsidian';
+import { getUniqueFileName } from '../markdown-combiner';
+import FileSelectionModal from './FileSelectionModal.svelte';
+
+const dispatch = createEventDispatcher();
 
 export let app: App;
 export let markdownProcessor: any; // Assuming MarkdownProcessor type
@@ -9,6 +13,7 @@ export let markdownProcessor: any; // Assuming MarkdownProcessor type
 let files: TFile[] = [];
 let fileNames: string[] = [];
 let combinedName: string = 'notes-combinees.md';
+let showFileSelectionModal: boolean = false;
 
 let commands: any[] = [];
 
@@ -56,6 +61,15 @@ function removeFile(idx: number) {
     files.splice(idx, 1);
 }
 
+async function openFilePicker() {
+    showFileSelectionModal = true;
+}
+
+function handleFilesSelected(event: CustomEvent) {
+    const selected = event.detail;
+    files = [...files, ...selected];
+}
+
 async function handleCombineAndSave() {
     if (!markdownProcessor) {
         console.error("MarkdownProcessor is not available.");
@@ -73,8 +87,13 @@ async function handleCombineAndSave() {
 
     // Save the processed content to a new file
     try {
-        await app.vault.create(combinedName, processedContent);
-        console.log(`File ${combinedName} created successfully.`);
+        const checkFileExists = async (name: string) => {
+            return await app.vault.adapter.exists(name);
+        };
+        const uniqueCombinedName = await getUniqueFileName(combinedName, checkFileExists);
+        await app.vault.create(uniqueCombinedName, processedContent);
+        new Notice(`File ${uniqueCombinedName} created successfully.`);
+        console.log(`File ${uniqueCombinedName} created successfully.`);
         // Optionally, show a success message to the user
     } catch (error) {
         console.error(`Error creating file ${combinedName}:`, error);
@@ -155,12 +174,19 @@ async function handleCombineAndSave() {
     <div class="drag-area" on:drop={handleDrop} on:dragover={handleDragOver}>
         Glisser-déposer des fichiers markdown ici (depuis Obsidian ou l'extérieur)
     </div>
+    <button on:click={openFilePicker}>Sélectionner des fichiers du coffre</button>
+
+{#if showFileSelectionModal}
+    <FileSelectionModal bind:isOpen={showFileSelectionModal} {app} on:filesSelected={handleFilesSelected} />
+{/if}
     <div class="file-list">
         {#each files as file, idx}
             <div class="file-item" draggable="true">
                 <span>{file.name}</span>
                 <span class="remove" on:click={() => removeFile(idx)}>✖</span>
-                
+                {#if idx > 0}
+                    <button on:click={() => moveFile(idx, idx-1)}>↑</button>
+                {/if}
                 {#if idx < files.length-1}
                     <button on:click={() => moveFile(idx, idx+1)}>↓</button>
                 {/if}
@@ -178,6 +204,7 @@ async function handleCombineAndSave() {
         <input type="text" bind:value={combinedName} style="flex:1;" />
     </div>
     <button on:click={handleCombineAndSave}>Combiner et créer le fichier</button>
+    <button on:click={() => dispatch('close')}>Fermer</button>
     
     <div style="margin-top:2rem;">
         <h3>Commandes disponibles</h3>

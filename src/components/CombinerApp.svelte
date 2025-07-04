@@ -26,6 +26,7 @@
     let processingStatus = '';
     let showPreview = false;
     let latexContent = '';
+    let combinedContent: string = ''; // Re-declare combinedContent
 
     onMount(() => {
         loadUiTexts();
@@ -88,6 +89,13 @@
             processingStatus = `Erreur: ${error.message}`;
         }
     }
+
+    function handleCloseApp() {
+        const container = document.getElementById('combiner-debug-root');
+        if (container) {
+            container.remove();
+        }
+    }
 </script>
 
 <div class="combiner-app">
@@ -97,7 +105,7 @@
         {showManualUI ? 'Fermer la combinaison manuelle' : 'Combinaison manuelle avancée'}
     </button>
     {#if showManualUI}
-        <CombinerManualUI {app} {markdownProcessor} />
+        <CombinerManualUI {app} {markdownProcessor} on:close={() => showManualUI = false} />
     {/if}
 
     <MarkdownProcessor 
@@ -109,7 +117,11 @@
         combinedFileName=""
     />
 
+    <LatexConverter bind:this={latexConverter} {app} {settings} />
+
     <button on:click={handleCombine}>Combine Active Note</button>
+
+    <button on:click={handleCloseApp}>Fermer l'interface</button>
 
     
 

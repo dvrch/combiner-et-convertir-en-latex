@@ -19,6 +19,7 @@
 	let hiddenIncludedFiles = new Set();
 	
 	function extractAnchorsFromContent(file, content) {
+		if (!file || !content) return;
 		// Titres
 		const sectionAnchors = [];
 		const blockAnchors = [];
@@ -149,7 +150,7 @@
 					continue;
 				}
 	
-				const embed = embedAnchors[noteName.toLowerCase()];
+				const embed = embedAnchors[noteName?.toLowerCase?.()];
 				if (embed) {
 					if (!sectionIndicator && !blockIndicator) {
 						const anchor = `^${noteName.replace(/_/g, '-')}`;
@@ -174,7 +175,7 @@
 						}
 					}
 				}
-				if (settings.useHiddenEmbeds && !includedFiles.has(noteName.toLowerCase()) && !hiddenIncludedFiles.has(noteName.toLowerCase())) {
+				if (settings.useHiddenEmbeds && noteName && !includedFiles.has(noteName.toLowerCase()) && !hiddenIncludedFiles.has(noteName.toLowerCase())) {
 					try {
 						const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
 						if (linkedFile) {
@@ -191,7 +192,7 @@
 					} catch (err) {}
 				}
 				const linkedFile = app.metadataCache.getFirstLinkpathDest(noteName, '');
-				if (linkedFile && !linkedFile.path.startsWith('http') && !linkedFile.path.startsWith('/')) {
+				if (linkedFile && linkedFile.path && !linkedFile.path.startsWith('http') && !linkedFile.path.startsWith('/')) {
 					const textLabel = displayText || noteName;
 					line = line.replace(fullMatch, `[[${noteName}|${textLabel}]]`);
 				} else {
@@ -231,8 +232,7 @@
 			}
 			try {
 				const imageFile = app.metadataCache.getFirstLinkpathDest(imageName, '');
-				if (imageFile) {
-					// Chemin Obsidian (toujours relatif à la racine du vault, sans ../)
+				if (imageFile && imageFile.path) {
 					const obsidianPath = imageFile.path.replace(/\\/g, '/');
 					let newImage = `![[${obsidianPath}`;
 					if (sectionIndicator && sectionName) {
@@ -465,4 +465,4 @@
 	}
 </script>
 
-<!-- Ce composant n'a pas d'interface utilisateur, il est purement logique --> 
+<!-- Ce composant n'a pas d'interface utilisateur, il est purement logique -->

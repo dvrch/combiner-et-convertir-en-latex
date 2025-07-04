@@ -160,9 +160,7 @@ async function handleCombineAndSave() {
             <div class="file-item" draggable="true">
                 <span>{file.name}</span>
                 <span class="remove" on:click={() => removeFile(idx)}>✖</span>
-                {#if idx > 0}
-                    <button on:click={handleCombineAndSave} style="margin-left:1rem;">
-                {/if}
+                
                 {#if idx < files.length-1}
                     <button on:click={() => moveFile(idx, idx+1)}>↓</button>
                 {/if}
@@ -179,6 +177,7 @@ async function handleCombineAndSave() {
         <label>Nom du fichier combiné :</label>
         <input type="text" bind:value={combinedName} style="flex:1;" />
     </div>
+    <button on:click={handleCombineAndSave}>Combiner et créer le fichier</button>
     
     <div style="margin-top:2rem;">
         <h3>Commandes disponibles</h3>
